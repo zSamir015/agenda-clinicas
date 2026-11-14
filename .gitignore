@@ -1,0 +1,25 @@
+# Entorno
+.env
+.env.*
+!.env.example
+
+# Go
+/bin/
+*.test
+*.out
+coverage.*
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Llaves locales de cifrado
+*.key
+deploy/local/master-key*
+
+# Sistema y editores
+.DS_Store
+.idea/
