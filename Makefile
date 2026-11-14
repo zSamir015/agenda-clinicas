@@ -22,3 +22,13 @@ test-go:
 
 lint-go:
 	cd backend && golangci-lint run ./...
+
+.PHONY: gen gen-go api
+
+gen: gen-go
+
+gen-go:
+	cd backend && go tool oapi-codegen -config oapi-codegen.yaml ../openapi/openapi.yaml
+
+api:
+	set -a; [ -f .env ] && . ./.env; set +a; cd backend && go run ./cmd/api

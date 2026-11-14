@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  title: agenda-clinicas API
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      operationId: getHealthz
+      summary: El proceso está vivo.
+      responses:
+        "200":
+          description: Vivo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /readyz:
+    get:
+      operationId: getReadyz
+      summary: El proceso puede atender peticiones (MongoDB responde).
+      responses:
+        "200":
+          description: Listo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        "503":
+          description: Alguna dependencia no responde.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    Problem:
+      description: Error según RFC 9457, con un código estable.
+      type: object
+      required: [title, status, code]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
