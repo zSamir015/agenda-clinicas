@@ -1,0 +1,43 @@
+{
+  "provinces": [
+    { "code": "1", "name": "Bocas del Toro" },
+    { "code": "2", "name": "Coclé" },
+    { "code": "3", "name": "Colón" },
+    { "code": "4", "name": "Chiriquí" },
+    { "code": "5", "name": "Darién" },
+    { "code": "6", "name": "Herrera" },
+    { "code": "7", "name": "Los Santos" },
+    { "code": "8", "name": "Panamá" },
+    { "code": "9", "name": "Veraguas" },
+    { "code": "10", "name": "Guna Yala" },
+    { "code": "11", "name": "Emberá-Wounaan" },
+    { "code": "12", "name": "Ngäbe-Buglé" },
+    { "code": "13", "name": "Panamá Oeste" }
+  ],
+  "neighborhoods": [
+    { "province": "Panamá", "district": "Panamá", "name": "Bella Vista" },
+    { "province": "Panamá", "district": "Panamá", "name": "San Francisco" },
+    { "province": "Panamá", "district": "Panamá", "name": "Obarrio" },
+    { "province": "Panamá", "district": "Panamá", "name": "El Cangrejo" },
+    { "province": "Panamá", "district": "Panamá", "name": "Costa del Este" },
+    { "province": "Panamá", "district": "Panamá", "name": "Punta Pacífica" },
+    { "province": "Panamá", "district": "Panamá", "name": "Bethania" },
+    { "province": "Panamá", "district": "Panamá", "name": "Parque Lefevre" },
+    { "province": "Panamá", "district": "Panamá", "name": "Clayton" },
+    { "province": "Panamá", "district": "Panamá", "name": "Condado del Rey" },
+    { "province": "Panamá Oeste", "district": "La Chorrera", "name": "Barrio Colón" },
+    { "province": "Panamá Oeste", "district": "Arraiján", "name": "Vista Alegre" },
+    { "province": "Chiriquí", "district": "David", "name": "David Centro" },
+    { "province": "Coclé", "district": "Penonomé", "name": "Penonomé Centro" },
+    { "province": "Herrera", "district": "Chitré", "name": "Chitré Centro" },
+    { "province": "Veraguas", "district": "Santiago", "name": "Santiago Centro" },
+    { "province": "Colón", "district": "Colón", "name": "Barrio Norte" }
+  ],
+  "syntheticClinicNames": [
+    "Clínica del Istmo",
+    "Centro Médico Pacífico",
+    "Consultorios Vía España",
+    "Clínica San Lucas Demo",
+    "Centro de Salud Chiriquí Demo"
+  ]
+}

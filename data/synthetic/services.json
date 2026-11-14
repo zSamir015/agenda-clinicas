@@ -1,0 +1,134 @@
+[
+  {
+    "id": "consulta-general",
+    "name": "Consulta general",
+    "specialtyId": "medicina-general",
+    "durationMinutes": 30,
+    "bufferMinutes": 5,
+    "priceCents": 4000,
+    "depositMode": "deposit",
+    "depositCents": 1500,
+    "roomType": "general"
+  },
+  {
+    "id": "control-seguimiento",
+    "name": "Control de seguimiento",
+    "specialtyId": "medicina-general",
+    "durationMinutes": 20,
+    "bufferMinutes": 5,
+    "priceCents": 3000,
+    "depositMode": "none",
+    "depositCents": 0,
+    "roomType": "general"
+  },
+  {
+    "id": "consulta-pediatrica",
+    "name": "Consulta pediátrica",
+    "specialtyId": "pediatria",
+    "durationMinutes": 30,
+    "bufferMinutes": 5,
+    "priceCents": 4500,
+    "depositMode": "deposit",
+    "depositCents": 1500,
+    "roomType": "pediatrics"
+  },
+  {
+    "id": "control-nino-sano",
+    "name": "Control de niño sano",
+    "specialtyId": "pediatria",
+    "durationMinutes": 30,
+    "bufferMinutes": 5,
+    "priceCents": 4500,
+    "depositMode": "none",
+    "depositCents": 0,
+    "roomType": "pediatrics"
+  },
+  {
+    "id": "evaluacion-cardiologica",
+    "name": "Evaluación cardiológica",
+    "specialtyId": "cardiologia",
+    "durationMinutes": 45,
+    "bufferMinutes": 10,
+    "priceCents": 7500,
+    "depositMode": "deposit",
+    "depositCents": 2500,
+    "roomType": "general"
+  },
+  {
+    "id": "electrocardiograma",
+    "name": "Consulta y electrocardiograma",
+    "specialtyId": "cardiologia",
+    "durationMinutes": 45,
+    "bufferMinutes": 10,
+    "priceCents": 9000,
+    "depositMode": "full",
+    "depositCents": 9000,
+    "roomType": "procedure"
+  },
+  {
+    "id": "consulta-dermatologica",
+    "name": "Consulta dermatológica",
+    "specialtyId": "dermatologia",
+    "durationMinutes": 30,
+    "bufferMinutes": 5,
+    "priceCents": 6000,
+    "depositMode": "deposit",
+    "depositCents": 2000,
+    "roomType": "general"
+  },
+  {
+    "id": "control-ginecologico",
+    "name": "Control ginecológico",
+    "specialtyId": "ginecologia",
+    "durationMinutes": 40,
+    "bufferMinutes": 10,
+    "priceCents": 6500,
+    "depositMode": "deposit",
+    "depositCents": 2000,
+    "roomType": "procedure"
+  },
+  {
+    "id": "consulta-ortopedia",
+    "name": "Evaluación ortopédica",
+    "specialtyId": "ortopedia",
+    "durationMinutes": 30,
+    "bufferMinutes": 5,
+    "priceCents": 6000,
+    "depositMode": "deposit",
+    "depositCents": 2000,
+    "roomType": "general"
+  },
+  {
+    "id": "examen-oftalmologico",
+    "name": "Examen oftalmológico",
+    "specialtyId": "oftalmologia",
+    "durationMinutes": 35,
+    "bufferMinutes": 5,
+    "priceCents": 5500,
+    "depositMode": "deposit",
+    "depositCents": 2000,
+    "roomType": "procedure"
+  },
+  {
+    "id": "limpieza-dental",
+    "name": "Evaluación y limpieza dental",
+    "specialtyId": "odontologia",
+    "durationMinutes": 45,
+    "bufferMinutes": 10,
+    "priceCents": 5000,
+    "depositMode": "full",
+    "depositCents": 5000,
+    "roomType": "dental"
+  },
+  {
+    "id": "sesion-fisioterapia",
+    "name": "Sesión de fisioterapia",
+    "specialtyId": "fisioterapia",
+    "durationMinutes": 45,
+    "bufferMinutes": 5,
+    "priceCents": 4500,
+    "depositMode": "none",
+    "depositCents": 0,
+    "roomType": "procedure"
+  }
+]
