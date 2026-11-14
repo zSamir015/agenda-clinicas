@@ -18,7 +18,7 @@ func PlatformMigrations() []Migration {
 			Up: func(ctx context.Context, db *mongo.Database) error {
 				model := mongo.IndexModel{
 					Keys:    bson.D{{Key: "slug", Value: 1}},
-					Options: options.Index().SetUnique(true).SetName("clinics_slug_unique"),
+					Options: options.Index().SetUnique(true).SetName("slug_unique"),
 				}
 				_, err := db.Collection("clinics").Indexes().CreateOne(ctx, model)
 				return err
