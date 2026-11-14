@@ -1,0 +1,323 @@
+/* Calenda Design System Tokens
+ * Spec: docs/ui/tokens.md
+ * WCAG 2.2 AA verified for light and dark schemes + forced-colors support.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Typography */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* Spacing (base 4px = 0.25rem) */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* Radii */
+  --radius-sm: 0.25rem;  /* 4px */
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 0.75rem;  /* 12px */
+  --radius-full: 9999px;
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* Raw Light Tokens */
+  --raw-bg-canvas-light: #f8f9fa;
+  --raw-bg-surface-light: #ffffff;
+  --raw-bg-subtle-light: #eef1f4;
+  --raw-text-primary-light: #11181c;
+  --raw-text-secondary-light: #4b5563;
+  --raw-text-muted-light: #5c6672;
+  --raw-border-default-light: #cbd2d9;
+  --raw-border-strong-light: #6c7682;
+  --raw-accent-light: #0c6478;
+  --raw-accent-hover-light: #094e5e;
+  --raw-accent-text-light: #ffffff;
+  --raw-accent-subtle-bg-light: #e0f2f5;
+  --raw-accent-subtle-text-light: #084857;
+  --raw-focus-ring-light: #0c6478;
+
+  --raw-success-bg-light: #e3f5ec;
+  --raw-success-text-light: #0f5132;
+  --raw-success-border-light: #2a7e56;
+  --raw-warning-bg-light: #fef3c7;
+  --raw-warning-text-light: #78350f;
+  --raw-warning-border-light: #9a5b13;
+  --raw-danger-bg-light: #fde8e8;
+  --raw-danger-text-light: #8b1a1a;
+  --raw-danger-border-light: #c53030;
+  --raw-info-bg-light: #e6f0fa;
+  --raw-info-text-light: #1e4273;
+  --raw-info-border-light: #2b6cb0;
+
+  --raw-shadow-sm-light: 0 1px 2px rgba(17, 24, 28, 0.06);
+  --raw-shadow-md-light: 0 4px 12px rgba(17, 24, 28, 0.08);
+
+  /* Raw Dark Tokens */
+  --raw-bg-canvas-dark: #0f1417;
+  --raw-bg-surface-dark: #161d21;
+  --raw-bg-subtle-dark: #1e272c;
+  --raw-text-primary-dark: #eef2f5;
+  --raw-text-secondary-dark: #b2bec7;
+  --raw-text-muted-dark: #8e9ca6;
+  --raw-border-default-dark: #33414a;
+  --raw-border-strong-dark: #6b7c87;
+  --raw-accent-dark: #46b8ce;
+  --raw-accent-hover-dark: #62c7da;
+  --raw-accent-text-dark: #071a1f;
+  --raw-accent-subtle-bg-dark: #112f36;
+  --raw-accent-subtle-text-dark: #8ce0f0;
+  --raw-focus-ring-dark: #62c7da;
+
+  --raw-success-bg-dark: #102a1e;
+  --raw-success-text-dark: #7ee2b0;
+  --raw-success-border-dark: #38a169;
+  --raw-warning-bg-dark: #2e2008;
+  --raw-warning-text-dark: #f6c965;
+  --raw-warning-border-dark: #d69e2e;
+  --raw-danger-bg-dark: #321414;
+  --raw-danger-text-dark: #fca5a5;
+  --raw-danger-border-dark: #e55353;
+  --raw-info-bg-dark: #12253a;
+  --raw-info-text-dark: #93c5fd;
+  --raw-info-border-dark: #4299e1;
+
+  --raw-shadow-sm-dark: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --raw-shadow-md-dark: 0 4px 14px rgba(0, 0, 0, 0.45);
+
+  /* Semantic Tokens (Default: Light + @media dark fallback) */
+  --bg-canvas: var(--raw-bg-canvas-light);
+  --bg-surface: var(--raw-bg-surface-light);
+  --bg-subtle: var(--raw-bg-subtle-light);
+  --text-primary: var(--raw-text-primary-light);
+  --text-secondary: var(--raw-text-secondary-light);
+  --text-muted: var(--raw-text-muted-light);
+  --border-default: var(--raw-border-default-light);
+  --border-strong: var(--raw-border-strong-light);
+  --accent: var(--raw-accent-light);
+  --accent-hover: var(--raw-accent-hover-light);
+  --accent-text: var(--raw-accent-text-light);
+  --accent-subtle-bg: var(--raw-accent-subtle-bg-light);
+  --accent-subtle-text: var(--raw-accent-subtle-text-light);
+  --focus-ring: var(--raw-focus-ring-light);
+
+  --success-bg: var(--raw-success-bg-light);
+  --success-text: var(--raw-success-text-light);
+  --success-border: var(--raw-success-border-light);
+  --warning-bg: var(--raw-warning-bg-light);
+  --warning-text: var(--raw-warning-text-light);
+  --warning-border: var(--raw-warning-border-light);
+  --danger-bg: var(--raw-danger-bg-light);
+  --danger-text: var(--raw-danger-text-light);
+  --danger-border: var(--raw-danger-border-light);
+  --info-bg: var(--raw-info-bg-light);
+  --info-text: var(--raw-info-text-light);
+  --info-border: var(--raw-info-border-light);
+
+  --shadow-sm: var(--raw-shadow-sm-light);
+  --shadow-md: var(--raw-shadow-md-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-canvas: var(--raw-bg-canvas-dark);
+    --bg-surface: var(--raw-bg-surface-dark);
+    --bg-subtle: var(--raw-bg-subtle-dark);
+    --text-primary: var(--raw-text-primary-dark);
+    --text-secondary: var(--raw-text-secondary-dark);
+    --text-muted: var(--raw-text-muted-dark);
+    --border-default: var(--raw-border-default-dark);
+    --border-strong: var(--raw-border-strong-dark);
+    --accent: var(--raw-accent-dark);
+    --accent-hover: var(--raw-accent-hover-dark);
+    --accent-text: var(--raw-accent-text-dark);
+    --accent-subtle-bg: var(--raw-accent-subtle-bg-dark);
+    --accent-subtle-text: var(--raw-accent-subtle-text-dark);
+    --focus-ring: var(--raw-focus-ring-dark);
+
+    --success-bg: var(--raw-success-bg-dark);
+    --success-text: var(--raw-success-text-dark);
+    --success-border: var(--raw-success-border-dark);
+    --warning-bg: var(--raw-warning-bg-dark);
+    --warning-text: var(--raw-warning-text-dark);
+    --warning-border: var(--raw-warning-border-dark);
+    --danger-bg: var(--raw-danger-bg-dark);
+    --danger-text: var(--raw-danger-text-dark);
+    --danger-border: var(--raw-danger-border-dark);
+    --info-bg: var(--raw-info-bg-dark);
+    --info-text: var(--raw-info-text-dark);
+    --info-border: var(--raw-info-border-dark);
+
+    --shadow-sm: var(--raw-shadow-sm-dark);
+    --shadow-md: var(--raw-shadow-md-dark);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-canvas: var(--raw-bg-canvas-dark);
+  --bg-surface: var(--raw-bg-surface-dark);
+  --bg-subtle: var(--raw-bg-subtle-dark);
+  --text-primary: var(--raw-text-primary-dark);
+  --text-secondary: var(--raw-text-secondary-dark);
+  --text-muted: var(--raw-text-muted-dark);
+  --border-default: var(--raw-border-default-dark);
+  --border-strong: var(--raw-border-strong-dark);
+  --accent: var(--raw-accent-dark);
+  --accent-hover: var(--raw-accent-hover-dark);
+  --accent-text: var(--raw-accent-text-dark);
+  --accent-subtle-bg: var(--raw-accent-subtle-bg-dark);
+  --accent-subtle-text: var(--raw-accent-subtle-text-dark);
+  --focus-ring: var(--raw-focus-ring-dark);
+
+  --success-bg: var(--raw-success-bg-dark);
+  --success-text: var(--raw-success-text-dark);
+  --success-border: var(--raw-success-border-dark);
+  --warning-bg: var(--raw-warning-bg-dark);
+  --warning-text: var(--raw-warning-text-dark);
+  --warning-border: var(--raw-warning-border-dark);
+  --danger-bg: var(--raw-danger-bg-dark);
+  --danger-text: var(--raw-danger-text-dark);
+  --danger-border: var(--raw-danger-border-dark);
+  --info-bg: var(--raw-info-bg-dark);
+  --info-text: var(--raw-info-text-dark);
+  --info-border: var(--raw-info-border-dark);
+
+  --shadow-sm: var(--raw-shadow-sm-dark);
+  --shadow-md: var(--raw-shadow-md-dark);
+}
+
+@supports (color: light-dark(white, black)) {
+  :root {
+    --bg-canvas: light-dark(var(--raw-bg-canvas-light), var(--raw-bg-canvas-dark));
+    --bg-surface: light-dark(var(--raw-bg-surface-light), var(--raw-bg-surface-dark));
+    --bg-subtle: light-dark(var(--raw-bg-subtle-light), var(--raw-bg-subtle-dark));
+    --text-primary: light-dark(var(--raw-text-primary-light), var(--raw-text-primary-dark));
+    --text-secondary: light-dark(var(--raw-text-secondary-light), var(--raw-text-secondary-dark));
+    --text-muted: light-dark(var(--raw-text-muted-light), var(--raw-text-muted-dark));
+    --border-default: light-dark(var(--raw-border-default-light), var(--raw-border-default-dark));
+    --border-strong: light-dark(var(--raw-border-strong-light), var(--raw-border-strong-dark));
+    --accent: light-dark(var(--raw-accent-light), var(--raw-accent-dark));
+    --accent-hover: light-dark(var(--raw-accent-hover-light), var(--raw-accent-hover-dark));
+    --accent-text: light-dark(var(--raw-accent-text-light), var(--raw-accent-text-dark));
+    --accent-subtle-bg: light-dark(var(--raw-accent-subtle-bg-light), var(--raw-accent-subtle-bg-dark));
+    --accent-subtle-text: light-dark(var(--raw-accent-subtle-text-light), var(--raw-accent-subtle-text-dark));
+    --focus-ring: light-dark(var(--raw-focus-ring-light), var(--raw-focus-ring-dark));
+
+    --success-bg: light-dark(var(--raw-success-bg-light), var(--raw-success-bg-dark));
+    --success-text: light-dark(var(--raw-success-text-light), var(--raw-success-text-dark));
+    --success-border: light-dark(var(--raw-success-border-light), var(--raw-success-border-dark));
+    --warning-bg: light-dark(var(--raw-warning-bg-light), var(--raw-warning-bg-dark));
+    --warning-text: light-dark(var(--raw-warning-text-light), var(--raw-warning-text-dark));
+    --warning-border: light-dark(var(--raw-warning-border-light), var(--raw-warning-border-dark));
+    --danger-bg: light-dark(var(--raw-danger-bg-light), var(--raw-danger-bg-dark));
+    --danger-text: light-dark(var(--raw-danger-text-light), var(--raw-danger-text-dark));
+    --danger-border: light-dark(var(--raw-danger-border-light), var(--raw-danger-border-dark));
+    --info-bg: light-dark(var(--raw-info-bg-light), var(--raw-info-bg-dark));
+    --info-text: light-dark(var(--raw-info-text-light), var(--raw-info-text-dark));
+    --info-border: light-dark(var(--raw-info-border-light), var(--raw-info-border-dark));
+  }
+}
+
+/* Base Reset & Accessibility Helpers */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: var(--leading-normal);
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  accent-color: var(--accent);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  clip-path: inset(50%);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* Forced Colors Mode (Windows High Contrast) */
+@media (forced-colors: active) {
+  :root {
+    --bg-canvas: Canvas;
+    --bg-surface: Canvas;
+    --bg-subtle: Canvas;
+    --text-primary: CanvasText;
+    --text-secondary: CanvasText;
+    --text-muted: GrayText;
+    --border-default: CanvasText;
+    --border-strong: CanvasText;
+    --accent: Highlight;
+    --accent-text: HighlightText;
+    --focus-ring: Highlight;
+  }
+
+  .card,
+  .badge,
+  .appointment-block,
+  input,
+  select,
+  textarea,
+  button {
+    border: 1px solid CanvasText;
+  }
+}

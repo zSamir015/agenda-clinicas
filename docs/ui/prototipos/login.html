@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Iniciar sesión · Calenda</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    .page {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: var(--space-4);
+    }
+    .header {
+      max-width: 72rem;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .brand {
+      font-weight: 700;
+      font-size: var(--text-lg);
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+    .main {
+      display: grid;
+      place-items: center;
+      padding-block: var(--space-6);
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 26rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: var(--space-6);
+    }
+    h1 {
+      font-size: var(--text-2xl);
+      line-height: var(--leading-tight);
+      margin: 0 0 var(--space-2);
+    }
+    .subtitle {
+      margin: 0 0 var(--space-5);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      margin-block-end: var(--space-4);
+    }
+    label {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .hint {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      min-height: var(--space-12);
+      padding: var(--space-3);
+      font: inherit;
+      font-size: max(1rem, 1em);
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+    }
+    input[aria-invalid="true"],
+    input:user-invalid {
+      border-color: var(--danger-border);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      width: 100%;
+      min-height: var(--space-12);
+      padding: var(--space-3) var(--space-4);
+      font: inherit;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background-color var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--accent-text);
+      border: 1px solid transparent;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-subtle);
+    }
+    .btn-inline {
+      width: auto;
+      min-height: var(--space-10);
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-sm);
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-block: var(--space-5);
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-default);
+    }
+    .password-row {
+      display: flex;
+      gap: var(--space-2);
+    }
+    .password-row input {
+      flex: 1;
+    }
+    .status-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--info-border);
+      background: var(--info-bg);
+      color: var(--info-text);
+      font-size: var(--text-sm);
+      margin-block-end: var(--space-4);
+    }
+    .status-banner[hidden] {
+      display: none;
+    }
+    .footer-links {
+      margin-block-start: var(--space-4);
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--text-sm);
+    }
+    a {
+      color: var(--accent);
+    }
+    .footer-note {
+      text-align: center;
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <a class="brand" href="index.html">Calenda · Panel de clínica</a>
+      <button type="button" class="btn btn-secondary btn-inline" id="theme-toggle" aria-pressed="false">
+        Cambiar tema
+      </button>
+    </header>
+
+    <main class="main">
+      <section class="auth-card" aria-labelledby="signin-heading">
+        <h1 id="signin-heading">Acceso del personal</h1>
+        <p class="subtitle" id="passkey-desc">
+          Usa tu passkey registrada o ingresa con correo, contraseña y código TOTP.
+        </p>
+
+        <div class="status-banner" id="auth-status" role="status" aria-live="polite" hidden>
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4"></path>
+            <path d="M12 8h.01"></path>
+          </svg>
+          <span id="auth-status-text"></span>
+        </div>
+
+        <form id="passkey-form" action="/auth/login" method="POST" aria-labelledby="signin-heading">
+          <div class="field">
+            <label for="username">Correo electrónico</label>
+            <input
+              type="email"
+              id="username"
+              name="username"
+              autocomplete="username webauthn"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              enterkeyhint="next"
+              aria-describedby="passkey-desc"
+              autofocus
+              required
+            >
+          </div>
+
+          <button type="button" class="btn btn-primary" id="passkey-btn">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"></path>
+              <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
+            </svg>
+            Entrar con passkey
+          </button>
+
+          <div class="divider" role="separator">o usar respaldo</div>
+
+          <div class="field">
+            <label for="password">Contraseña</label>
+            <div class="password-row">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                autocomplete="current-password"
+                enterkeyhint="next"
+              >
+              <button
+                type="button"
+                class="btn btn-secondary btn-inline"
+                id="toggle-password"
+                aria-pressed="false"
+                aria-label="Mostrar contraseña"
+              >
+                Mostrar
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="totp">Código de verificación (TOTP)</label>
+            <input
+              type="text"
+              id="totp"
+              name="totp"
+              class="mono"
+              inputmode="numeric"
+              pattern="\d{6}"
+              maxlength="6"
+              autocomplete="one-time-code"
+              enterkeyhint="done"
+              aria-describedby="totp-hint"
+            >
+            <span class="hint" id="totp-hint">6 dígitos de tu aplicación autenticadora.</span>
+          </div>
+
+          <button type="submit" class="btn btn-secondary">
+            Entrar con contraseña y TOTP
+          </button>
+        </form>
+
+        <div class="footer-links">
+          <a href="#recovery">Usar código de recuperación</a>
+          <a href="index.html">Volver al índice</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer-note">
+      Sesión protegida en servidor · Sin datos reales en prototipo
+    </footer>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    themeBtn.addEventListener('click', () => {
+      const current = root.getAttribute('data-theme');
+      const isDarkSystem = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const next = current === 'dark' ? 'light' : current === 'light' ? 'dark' : (isDarkSystem ? 'light' : 'dark');
+      root.setAttribute('data-theme', next);
+      themeBtn.setAttribute('aria-pressed', String(next === 'dark'));
+      themeBtn.textContent = next === 'dark' ? 'Tema: oscuro' : 'Tema: claro';
+    });
+
+    const togglePwdBtn = document.getElementById('toggle-password');
+    const pwdInput = document.getElementById('password');
+    togglePwdBtn.addEventListener('click', () => {
+      const showing = pwdInput.type === 'text';
+      pwdInput.type = showing ? 'password' : 'text';
+      togglePwdBtn.setAttribute('aria-pressed', String(!showing));
+      togglePwdBtn.textContent = showing ? 'Mostrar' : 'Ocultar';
+      togglePwdBtn.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    });
+
+    const statusBox = document.getElementById('auth-status');
+    const statusText = document.getElementById('auth-status-text');
+    document.getElementById('passkey-btn').addEventListener('click', () => {
+      statusBox.hidden = false;
+      statusText.textContent = 'Simulación: el navegador abriría el selector de passkey del dispositivo (WebAuthn).';
+    });
+
+    document.getElementById('passkey-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      statusBox.hidden = false;
+      statusText.textContent = 'Simulación: credenciales enviadas por POST con token CSRF.';
+    });
+  </script>
+</body>
+</html>

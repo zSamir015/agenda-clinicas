@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Prototipos UI · Calenda</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    .wrap {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-4);
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-4);
+      margin-block-end: var(--space-8);
+    }
+    .brand {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .btn-ghost {
+      min-height: var(--space-10);
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font: inherit;
+      font-size: var(--text-sm);
+      cursor: pointer;
+    }
+    .btn-ghost:hover {
+      background: var(--bg-subtle);
+    }
+    h1 {
+      font-size: var(--text-2xl);
+      line-height: var(--leading-tight);
+      margin: 0 0 var(--space-2);
+    }
+    .lead {
+      color: var(--text-secondary);
+      margin: 0 0 var(--space-6);
+    }
+    .grid {
+      display: grid;
+      gap: var(--space-4);
+    }
+    .card {
+      display: block;
+      padding: var(--space-5);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color var(--duration-fast) var(--ease-standard),
+        background-color var(--duration-fast) var(--ease-standard);
+    }
+    .card:hover {
+      border-color: var(--accent);
+      background: var(--bg-subtle);
+    }
+    .card h2 {
+      font-size: var(--text-lg);
+      margin: 0 0 var(--space-1);
+      color: var(--accent);
+    }
+    .card p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="topbar">
+      <span class="brand">Calenda · Sistema de diseño</span>
+      <button type="button" class="btn-ghost" id="theme-toggle" aria-pressed="false">
+        Cambiar tema
+      </button>
+    </header>
+
+    <h1>Prototipos HTML estáticos</h1>
+    <p class="lead">
+      Validación visual de tokens, contraste WCAG 2.2 AA, tema claro/oscuro y estructura accesible antes de iniciar la fase 2 en Next.js.
+    </p>
+
+    <nav aria-label="Pantallas prototipo" class="grid">
+      <a class="card" href="login.html">
+        <h2>1. Acceso del personal con passkey</h2>
+        <p>Pantalla dedicada de inicio de sesión con Conditional UI, botón explícito de passkey y respaldo de contraseña + TOTP.</p>
+      </a>
+      <a class="card" href="agenda.html">
+        <h2>2. Agenda semanal de recepción</h2>
+        <p>Grilla semanal por horarios, estados de cita diferenciados por icono y etiqueta, línea de hora actual y panel lateral.</p>
+      </a>
+      <a class="card" href="reserva.html">
+        <h2>3. Página pública de reserva</h2>
+        <p>Flujo en tres pasos para pacientes: servicio y médico, fecha y hora en America/Panama, verificación por código de 6 dígitos y depósito.</p>
+      </a>
+    </nav>
+  </main>
+
+  <script>
+    const btn = document.getElementById('theme-toggle');
+    const root = document.documentElement;
+    btn.addEventListener('click', () => {
+      const current = root.getAttribute('data-theme');
+      const isDarkSystem = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const next = current === 'dark' ? 'light' : current === 'light' ? 'dark' : (isDarkSystem ? 'light' : 'dark');
+      root.setAttribute('data-theme', next);
+      btn.setAttribute('aria-pressed', String(next === 'dark'));
+      btn.textContent = next === 'dark' ? 'Tema: oscuro' : 'Tema: claro';
+    });
+  </script>
+</body>
+</html>
