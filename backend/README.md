@@ -20,6 +20,7 @@ Cada programa en `cmd/` solo arma las piezas y arranca; la lógica vive en `inte
 | `mongodb` | Cliente de MongoDB; `mongotest` levanta uno real en un contenedor para las pruebas |
 | `httpapi` | Handlers de la API. `openapi.gen.go` se genera desde `openapi/openapi.yaml` con `make gen-go` y no se edita a mano |
 | `platform` | Registro de clínicas (`platform.clinics`), `TenantResolver` con caché de 60 s y `TenantContext` en el `context.Context` |
+| `crypto` | Cifrado de campos por clínica: interfaz `Encryptor`, `Fake` en memoria para pruebas y `ClientEncryptor` (CSFLE, etiqueta `cse`). Llave maestra local en archivo `0600` |
 
 ## Correr la API
 
