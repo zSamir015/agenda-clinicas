@@ -15,10 +15,14 @@ db-reset:
 # DOCKER_HOST is already right, so these variables are only added when unset.
 GO_TEST_ENV := $(if $(DOCKER_HOST),,DOCKER_HOST=unix://$(HOME)/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock)
 
-.PHONY: test-go lint-go
+.PHONY: test-go test-crypto lint-go
 
 test-go:
 	cd backend && $(GO_TEST_ENV) go test -race ./...
+
+# Needs libmongocrypt: brew install mongodb/brew/libmongocrypt pkgconf cmake
+test-crypto:
+	cd backend && $(GO_TEST_ENV) go test -race -tags cse ./internal/crypto/...
 
 lint-go:
 	cd backend && golangci-lint run ./...
