@@ -8,24 +8,24 @@ Cada fase termina en algo que funciona, tiene pruebas y se puede mostrar. Las fa
 |---|---|---|
 | 0 | Fundaciones | 12 a 16 |
 | 1 | Plataforma y aislamiento | 25 a 32 |
-| 2 | Autenticación y roles | 20 a 26 |
+| 2 | Autenticación, roles y base del diseño | 42 a 52 |
 | 3 | Catálogo y disponibilidad | 22 a 28 |
-| 4 | Reservas | 28 a 35 |
+| 4 | Reservas y calendario | 38 a 46 |
 | 5 | Pacientes y auditoría | 16 a 22 |
-| 6 | Pagos | 20 a 26 |
+| 6 | Pagos | 24 a 31 |
 | 7 | Notificaciones | 20 a 26 |
-| 8 | Interfaz del panel y página pública | 30 a 40 |
+| 8 | Interfaz del panel y página pública | 40 a 54 |
 | 9 | Nivel dedicado y borrado | 14 a 18 |
 | 10 | Producción y demo | 24 a 30 |
-| | **Total** | **231 a 299** |
+| | **Total** | **277 a 355** |
 
 ## Calendario estimado
 
 | Dedicación | Duración |
 |---|---|
-| 10 horas por semana | 6 a 7 meses |
-| 15 horas por semana | 4 a 5 meses |
-| 20 horas por semana | 3 a 3,5 meses |
+| 10 horas por semana | 7 a 8,5 meses |
+| 15 horas por semana | 4,5 a 6 meses |
+| 20 horas por semana | 3,5 a 4,5 meses |
 
 Con asistentes de código el tiempo suele bajar entre un 25 y un 40 por ciento en el código repetitivo (contrato, CRUD, componentes), pero no en el diseño, la depuración de concurrencia ni la integración con terceros. Una versión mostrable (fases 0 a 4 más la parte mínima de la 8) llega a la mitad del calendario.
 
@@ -54,16 +54,19 @@ Resultado: se crean clínicas por CLI y cada petición queda ligada a su clínic
 - Prueba de aislamiento entre clínicas sobre todos los repositorios.
 - ADR de niveles de aislamiento y de cifrado.
 
-## Fase 2. Autenticación y roles
+## Fase 2. Autenticación, roles y base del diseño
 
-Resultado: el personal entra con contraseña y TOTP y solo ve lo que su rol permite.
+Resultado: el personal entra con passkey (o contraseña y TOTP) y solo ve lo que su rol permite. El sistema de diseño tiene sus tokens y componentes base.
 
+- Tokens del sistema de diseño (color, tipografía, espaciado, movimiento, tema claro y oscuro) y componentes base sobre Radix.
 - Usuarios, membresías por clínica e invitaciones.
-- Login con Argon2id, TOTP, sesiones en servidor, CSRF.
-- Tabla de permisos y comprobación en servicios.
-- Códigos de un solo uso para pacientes.
-- Límites de peticiones en login y envío de códigos.
-- Pantallas de login, invitación y activación de TOTP.
+- Passkeys con `go-webauthn/webauthn`; contraseña con Argon2id, TOTP y códigos de recuperación como respaldo.
+- Sesiones en servidor y CSRF.
+- Catálogo de permisos, roles por clínica con alcance `own` o `all`, roles de plantilla, reglas anti-escalada.
+- Códigos de un solo uso para pacientes con límites de intentos y envíos.
+- Límites de peticiones en login y códigos.
+- Pantallas de login, invitación, registro de passkey, TOTP y gestión de roles.
+- Prueba de passkeys con el autenticador virtual de Playwright.
 
 ## Fase 3. Catálogo y disponibilidad
 
@@ -74,7 +77,7 @@ Resultado: la clínica configura médicos, consultorios, servicios y horarios, y
 - Motor de disponibilidad con pruebas de tabla (reglas solapadas, bloqueos, márgenes, consultorio requerido).
 - Pantallas de configuración en el panel.
 
-## Fase 4. Reservas
+## Fase 4. Reservas y calendario
 
 Resultado: se reservan, cancelan y reprograman citas sin citas dobles, y la recepción ve la agenda en vivo.
 
@@ -83,7 +86,7 @@ Resultado: se reservan, cancelan y reprograman citas sin citas dobles, y la rece
 - Reprogramación atómica.
 - Prueba de 100 reservas simultáneas y de reprogramación concurrente.
 - SSE con change streams.
-- Vista de agenda diaria y semanal en el panel.
+- Calendario propio: vistas de día y semana, columnas por médico o consultorio, arrastrar para mover y redimensionar, navegación por teclado.
 
 ## Fase 5. Pacientes y auditoría
 
@@ -96,12 +99,16 @@ Resultado: fichas de pacientes cifradas, búsqueda por cédula y nombre, y una b
 
 ## Fase 6. Pagos
 
-Resultado: el paciente paga el depósito y la cita se confirma sola.
+Resultado: el paciente paga el depósito o el total y la cita se confirma sola.
 
-- Stripe Connect Express en modo de prueba y onboarding de la clínica.
-- Checkout con depósito y hold de 15 minutos.
+- Interfaz `PaymentProvider` y adaptador de Stripe Connect Express en modo de prueba.
+- Onboarding de la cuenta de la clínica.
+- Modalidad por servicio: sin cobro, depósito (fijo o porcentaje) o total.
+- Checkout con hold de 15 minutos.
 - Webhooks firmados e idempotentes.
-- Reembolsos por pago tardío y por cancelación anticipada.
+- Reembolsos por pago tardío y por cancelación a tiempo, con anticipación configurable.
+- Tabla de casos de cobro y cancelación en las pruebas.
+- `docs/payments-providers.md` con lo que necesitaría un adaptador local.
 
 ## Fase 7. Notificaciones
 
@@ -109,15 +116,16 @@ Resultado: confirmaciones y recordatorios por correo y WhatsApp, con confirmaci�
 
 - Outbox en la misma transacción que la cita.
 - Worker con change stream, sondeo de respaldo y reintentos.
+- Interfaz `Messenger`, adaptador de WhatsApp Cloud API y de correo.
 - Plantillas de correo y de WhatsApp.
-- Recordatorios a 24 y 2 horas.
+- Recordatorios a 24 y 2 horas por defecto, configurables por clínica.
 - Webhook de respuestas de WhatsApp.
 
 ## Fase 8. Interfaz del panel y página pública
 
 Resultado: un producto que se ve terminado.
 
-- Sistema de diseño propio: tipografía, color, componentes sobre Radix.
+- Resto de componentes del sistema de diseño propio y documentación de tokens y componentes.
 - Página pública de reserva por clínica, de principio a fin, con accesibilidad WCAG 2.2 AA.
 - Pulido del panel: estados vacíos, carga, errores, atajos de teclado.
 - Playwright: reserva con pago y movimiento de una cita en recepción.
@@ -136,7 +144,7 @@ Resultado: una clínica pasa al nivel dedicado sin perder datos y una clínica b
 
 Resultado: demo pública con datos sintéticos y documentación completa.
 
-- Dominio, Vercel con subdominios comodín, Fly.io, Atlas, AWS KMS.
+- Dominio, Vercel con subdominios comodín, Fly.io, Atlas, AWS KMS, configurados a mano y documentados en `deploy/README.md`.
 - OpenTelemetry y tablero en Grafana Cloud.
 - Generador de datos sintéticos y demo con cuentas de prueba.
 - Prueba de carga con k6 documentada.

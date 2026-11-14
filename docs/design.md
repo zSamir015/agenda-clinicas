@@ -1,6 +1,6 @@
 # Diseño
 
-Estado: borrador para revisión del dueño (2026-11-13).
+Estado: borrador para revisión del dueño (2026-11-13). Partes 1 a 7 discutidas y decididas con el dueño.
 
 ## 1. Objetivo
 
@@ -115,26 +115,26 @@ Reglas semanales, menos bloqueos, menos celdas ocupadas, filtrado por duración 
 
 ### Personal de la clínica
 
-- Correo y contraseña con Argon2id, más segundo factor TOTP obligatorio.
-- Sesiones en el servidor (colección `platform.sessions`) con cookie `HttpOnly`, `Secure` y `SameSite=Lax`, más token CSRF en las peticiones que modifican datos. No se usan JWT para el panel.
-- Alta por invitación con enlace de un solo uso.
+- Método principal: passkeys (WebAuthn) con `go-webauthn/webauthn`. Una persona puede registrar varias passkeys (computadora, teléfono).
+- Respaldo: contraseña con Argon2id más TOTP obligatorio, y diez códigos de recuperación de un solo uso guardados como hash.
+- Sesiones en el servidor (colección `platform.sessions`) con cookie `HttpOnly`, `Secure` y `SameSite=Lax`, más token CSRF en las peticiones que modifican datos. No se usan JWT para el panel, para poder revocar una sesión al instante.
+- Alta por invitación con enlace de un solo uso. Durante la activación se registra la primera passkey o se configura la contraseña con TOTP.
 - Una persona puede pertenecer a varias clínicas con un rol distinto en cada una.
 
-### Roles
+### Roles y permisos
 
-| Permiso | owner | admin | reception | practitioner |
-|---|---|---|---|---|
-| Configurar clínica, usuarios y pagos | sí | sí | no | no |
-| Gestionar médicos, servicios y horarios | sí | sí | no | solo los suyos |
-| Ver y modificar la agenda | sí | sí | sí | solo la suya |
-| Ver ficha del paciente | sí | sí | sí | solo sus pacientes |
-| Exportar o borrar datos de pacientes | sí | no | no | no |
-
-Los permisos se definen en una tabla en código y se comprueban en la capa de servicio, no en los handlers.
+- El catálogo de permisos es fijo y vive en el código: `appointments.read`, `appointments.write`, `schedule.manage`, `patients.read`, `patients.write`, `patients.export`, `patients.delete`, `payments.read`, `payments.refund`, `users.manage`, `roles.manage`, `clinic.settings`.
+- Cada clínica define sus roles como combinaciones de esos permisos. Cada permiso tiene un alcance: `own` (solo lo asignado a la persona, por ejemplo un médico y sus pacientes) o `all`.
+- Al crear una clínica se generan cuatro roles de plantilla: `owner`, `admin`, `reception` y `practitioner`. Todos se pueden editar salvo `owner`, que tiene todos los permisos.
+- Nadie puede otorgar un permiso o alcance que no tiene. No se puede quitar el rol `owner` a la última persona que lo tiene.
+- Los permisos se comprueban en la capa de servicio, no en los handlers. Los roles se guardan en `platform.roles` y se cachean por sesión; cambiar un rol invalida esa caché.
+- Cada cambio de rol o de membresía genera un evento de auditoría.
 
 ### Pacientes
 
-Sin contraseña. El paciente recibe un código de 6 dígitos por correo o WhatsApp para reservar y para ver, cancelar o reprogramar sus citas. Los códigos vencen en 10 minutos y tienen límite de intentos.
+- Sin cuenta ni contraseña. El paciente recibe un código de 6 dígitos por WhatsApp o correo para reservar y para ver, cancelar o reprogramar sus citas.
+- El código vence en 10 minutos, se guarda como hash, admite 5 intentos y como máximo se envían 3 códigos por hora a un mismo teléfono o correo.
+- Tras validar el código se abre una sesión de paciente de 30 minutos, limitada a sus propias citas.
 
 ### Administrador de la plataforma
 
@@ -142,36 +142,64 @@ Cuenta separada, solo por CLI en la v1 (`tenantctl`). Crea clínicas, cambia niv
 
 ### Auditoría
 
-Cada lectura y cambio de datos de un paciente genera un evento en `audit_events` de la base de la clínica: quién, qué, cuándo, desde qué IP. Los eventos se encadenan con un hash del evento anterior, y un comando verifica que la cadena no fue alterada.
+Cada lectura y cambio de datos de un paciente genera un evento en `audit_events` de la base de la clínica: quién, qué, cuándo, desde qué IP. Cada evento guarda el hash del anterior. `tenantctl audit verify <slug>` recorre la cadena y señala el primer evento alterado o faltante.
 
 ### Límites de uso
 
-Límite de peticiones por IP y por usuario en memoria de cada instancia para la v1, y más estricto en el login y en el envío de códigos.
+Límite de peticiones por IP y por usuario en memoria de cada instancia para la v1, más estricto en el login, en la verificación de códigos y en el envío de códigos.
 
 ## 7. Pagos
 
-- Stripe Connect con cuentas Express, en modo de prueba. Cada clínica conecta su cuenta desde el panel y la plataforma cobra el depósito en nombre de la clínica.
-- Si el servicio tiene depósito, la reserva crea un hold de 15 minutos y una sesión de Stripe Checkout. El webhook `checkout.session.completed` confirma la cita.
+### Interfaz
+
+El dominio de pagos depende de una interfaz `PaymentProvider` con estas operaciones: conectar la cuenta de la clínica, crear un cobro, verificar y traducir un webhook a un evento interno, y reembolsar. Ningún otro módulo conoce al proveedor.
+
+- Adaptador de la v1: Stripe Connect con cuentas Express, en modo de prueba. Cada clínica conecta su cuenta desde el panel y el cobro se hace en nombre de la clínica.
+- Stripe no opera para comercios en Panamá. Un despliegue real usaría un adaptador local (Tilopay o PagueloFacil). El documento `docs/payments-providers.md` describirá qué necesita ese adaptador; no se implementa en la v1.
+
+### Modalidad de cobro por servicio
+
+Cada servicio define una de tres modalidades:
+
+| Modalidad | Qué se cobra al reservar |
+|---|---|
+| `none` | Nada |
+| `deposit` | Monto fijo o porcentaje del precio |
+| `full` | El precio completo |
+
+### Flujo
+
+- Si el servicio cobra algo, la reserva crea un hold de 15 minutos y un cobro con el proveedor (Stripe Checkout en la v1). El webhook de pago completado confirma la cita.
 - Los webhooks se verifican por firma y se registran en `processed_events` con índice único sobre el id del evento, para procesar cada uno una sola vez.
 - Si el pago llega después de que venció el hold y el horario ya se ocupó, se reembolsa de forma automática y se avisa al paciente.
-- Cancelar con más de 24 horas de anticipación reembolsa el depósito. La regla es configurable por clínica.
+
+### Cancelaciones
+
+- Cada clínica configura la anticipación mínima para reembolso (24 horas por defecto).
+- Cancelación a tiempo: reembolso completo. Cancelación tardía o inasistencia: la clínica retiene lo cobrado.
+- Una tabla de casos en las pruebas cubre cada combinación de modalidad, momento de cancelación, inasistencia y pago tardío, con el resultado esperado.
 
 ## 8. Notificaciones
 
 - Patrón outbox: el cambio de estado de una cita y el mensaje a enviar se escriben en la misma transacción. El worker lee el outbox con un change stream y un respaldo por sondeo.
 - Reintentos con espera exponencial y un máximo de intentos. Los mensajes fallidos quedan marcados para revisión.
-- Correo: SMTP con Mailpit en desarrollo y un proveedor transaccional en producción.
-- WhatsApp: Cloud API de Meta con número de prueba y plantillas aprobadas. Los botones de confirmar o cancelar llegan por webhook y cambian el estado de la cita.
-- Mensajes: confirmación de reserva, recordatorio 24 horas antes, recordatorio 2 horas antes, cancelación y reprogramación.
+- Los canales implementan la interfaz `Messenger`.
+- WhatsApp: Cloud API de Meta directa, con el número de prueba (hasta 5 destinatarios verificados) y plantillas aprobadas. Los botones de confirmar o cancelar llegan por webhook y cambian el estado de la cita.
+- Correo: SMTP con Mailpit en desarrollo y Resend o Postmark en producción.
+- Mensajes: confirmación de reserva, recordatorios, cancelación, reprogramación y códigos de acceso.
+- Recordatorios a 24 y 2 horas por defecto. Cada clínica puede cambiar los tiempos o desactivar uno.
 
 ## 9. Web
 
-- Next.js con App Router, TypeScript estricto, Tailwind CSS y componentes propios sobre Radix.
+- Next.js con App Router, TypeScript estricto y Tailwind CSS.
+- Sistema de diseño propio: tokens (color, tipografía, espaciado, radios, sombras, movimiento) en variables CSS, con tema claro y oscuro, y componentes propios construidos sobre primitivas de Radix sin estilos. No se usa una librería de componentes con estilo. Los tokens y los componentes base (botón, campo, diálogo, menú, aviso) se hacen en la fase 2; el resto, a medida que lo pide cada pantalla.
+- Calendario de la agenda propio: vistas de día y semana, columnas por médico o consultorio, arrastrar para mover y redimensionar citas, línea de la hora actual, y navegación por teclado.
 - El middleware resuelve el subdominio: `app.` lleva al panel y cualquier otro slug a la página pública de esa clínica.
 - Los datos se piden con TanStack Query sobre el cliente generado del contrato.
 - La agenda de recepción se actualiza en vivo por Server-Sent Events. La API los alimenta con change streams.
-- Vistas del panel: agenda del día y de la semana por médico o consultorio, ficha del paciente, configuración de servicios y horarios, usuarios, pagos.
-- Página pública: elegir servicio, médico y horario, identificarse con código, pagar y recibir confirmación. Las páginas públicas cumplen WCAG 2.2 AA.
+- Vistas del panel: agenda, ficha del paciente, configuración de servicios y horarios, usuarios y roles, pagos.
+- Página pública: elegir servicio, médico y horario, identificarse con código, pagar si corresponde y recibir confirmación.
+- Todo el panel y la página pública cumplen WCAG 2.2 AA.
 
 ## 10. Errores
 
@@ -192,6 +220,7 @@ Límite de peticiones por IP y por usuario en memoria de cada instancia para la 
 - `web` en Vercel, con dominio comodín para los subdominios de las clínicas. Requiere un dominio propio.
 - MongoDB Atlas en el plan gratuito para la demo (replica set, permite transacciones).
 - AWS KMS para la llave maestra.
+- La infraestructura se configura a mano y queda documentada en `deploy/README.md`. Terraform queda fuera de la v1.
 - Entornos: local, `preview` por PR para la web y `production` para la demo.
 - Respaldos: los de Atlas, más un `mongodump` semanal cifrado como prueba de restauración.
 
@@ -200,8 +229,8 @@ En local todo corre con `docker compose`: MongoDB como replica set de un nodo y 
 ## 13. Pruebas
 
 - Go: pruebas unitarias por módulo y de integración contra MongoDB real usando testcontainers.
-- Pruebas obligatorias: aislamiento entre clínicas, 100 reservas simultáneas al mismo horario con un solo ganador, reprogramación concurrente, hold vencido durante el pago, idempotencia de webhooks, verificación de la cadena de auditoría, cambio de nivel.
-- Web: pruebas de componentes con Vitest y Testing Library, y flujos completos con Playwright (reserva con pago, recepción mueve una cita).
+- Pruebas obligatorias: aislamiento entre clínicas, 100 reservas simultáneas al mismo horario con un solo ganador, reprogramación concurrente, hold vencido durante el pago, idempotencia de webhooks, verificación de la cadena de auditoría, cambio de nivel, escalada de permisos (nadie otorga lo que no tiene), tabla de casos de cobro y cancelación.
+- Web: pruebas de componentes con Vitest y Testing Library, y flujos completos con Playwright (login con passkey usando el autenticador virtual, reserva con pago, recepción mueve una cita en el calendario).
 - Carga: k6 contra el endpoint de reserva, con el número de conflictos y la latencia p95 documentados.
 - CI en GitHub Actions: lint, pruebas de Go con MongoDB, pruebas de web, verificación de que el código generado del contrato está al día.
 
@@ -216,4 +245,6 @@ En local todo corre con `docker compose`: MongoDB como replica set de un nodo y 
 | CSFLE con el driver de Go requiere `libmongocrypt` y cgo | Resolverlo en la fase 1 con una prueba aislada antes de construir encima |
 | Plantillas de WhatsApp requieren aprobación de Meta | Usar el número de prueba; si se demora, el canal de correo cubre la demo |
 | Dominio comodín en Vercel | Comprar el dominio al inicio de la fase 10 |
+| Passkeys difíciles de probar | Pruebas con el autenticador virtual de Playwright (CDP WebAuthn) |
+| Sistema de diseño propio alarga la fase 8 | Tokens y componentes base desde la fase 2, el resto según cada pantalla |
 | Alcance grande para una persona | Cada fase termina en algo que funciona y se puede mostrar |
