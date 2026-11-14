@@ -1,0 +1,201 @@
+:root {
+  color-scheme: light dark;
+
+  /* Tipografía */
+  --font-sans:
+    var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --font-mono:
+    var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, SFMono-Regular,
+    Menlo, Consolas, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* Espaciado (base 4px) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Radios */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Movimiento */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* Tema claro por defecto (respaldo sin light-dark) */
+  --bg-canvas: #f8f9fa;
+  --bg-surface: #ffffff;
+  --bg-subtle: #eef1f4;
+  --text-primary: #11181c;
+  --text-secondary: #4b5563;
+  --text-muted: #5c6672;
+  --border-default: #cbd2d9;
+  --border-strong: #6c7682;
+
+  --accent: #0c6478;
+  --accent-hover: #094e5e;
+  --accent-text: #ffffff;
+  --accent-subtle-bg: #e0f2f5;
+  --accent-subtle-text: #084857;
+  --focus-ring: #0c6478;
+
+  --success-bg: #e3f5ec;
+  --success-text: #0f5132;
+  --success-border: #2a7e56;
+
+  --warning-bg: #fef3c7;
+  --warning-text: #78350f;
+  --warning-border: #9a5b13;
+
+  --danger-bg: #fde8e8;
+  --danger-text: #8b1a1a;
+  --danger-border: #c53030;
+
+  --info-bg: #e6f0fa;
+  --info-text: #1e4273;
+  --info-border: #2b6cb0;
+
+  --shadow-sm: 0 1px 2px rgba(17, 24, 28, 0.06);
+  --shadow-md: 0 4px 12px rgba(17, 24, 28, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-canvas: #0f1417;
+    --bg-surface: #161d21;
+    --bg-subtle: #1e272c;
+    --text-primary: #eef2f5;
+    --text-secondary: #b2bec7;
+    --text-muted: #8e9ca6;
+    --border-default: #33414a;
+    --border-strong: #6b7c87;
+
+    --accent: #46b8ce;
+    --accent-hover: #62c7da;
+    --accent-text: #071a1f;
+    --accent-subtle-bg: #112f36;
+    --accent-subtle-text: #8ce0f0;
+    --focus-ring: #62c7da;
+
+    --success-bg: #102a1e;
+    --success-text: #7ee2b0;
+    --success-border: #38a169;
+
+    --warning-bg: #2e2008;
+    --warning-text: #f6c965;
+    --warning-border: #d69e2e;
+
+    --danger-bg: #321414;
+    --danger-text: #fca5a5;
+    --danger-border: #e55353;
+
+    --info-bg: #12253a;
+    --info-text: #93c5fd;
+    --info-border: #4299e1;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-canvas: #0f1417;
+  --bg-surface: #161d21;
+  --bg-subtle: #1e272c;
+  --text-primary: #eef2f5;
+  --text-secondary: #b2bec7;
+  --text-muted: #8e9ca6;
+  --border-default: #33414a;
+  --border-strong: #6b7c87;
+
+  --accent: #46b8ce;
+  --accent-hover: #62c7da;
+  --accent-text: #071a1f;
+  --accent-subtle-bg: #112f36;
+  --accent-subtle-text: #8ce0f0;
+  --focus-ring: #62c7da;
+
+  --success-bg: #102a1e;
+  --success-text: #7ee2b0;
+  --success-border: #38a169;
+
+  --warning-bg: #2e2008;
+  --warning-text: #f6c965;
+  --warning-border: #d69e2e;
+
+  --danger-bg: #321414;
+  --danger-text: #fca5a5;
+  --danger-border: #e55353;
+
+  --info-bg: #12253a;
+  --info-text: #93c5fd;
+  --info-border: #4299e1;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+@media (forced-colors: active) {
+  :root {
+    --bg-canvas: Canvas;
+    --bg-surface: Canvas;
+    --bg-subtle: Canvas;
+    --text-primary: CanvasText;
+    --text-secondary: CanvasText;
+    --text-muted: GrayText;
+    --border-default: CanvasText;
+    --border-strong: CanvasText;
+
+    --accent: Highlight;
+    --accent-hover: Highlight;
+    --accent-text: HighlightText;
+    --accent-subtle-bg: Canvas;
+    --accent-subtle-text: Highlight;
+    --focus-ring: Highlight;
+
+    --success-bg: Canvas;
+    --success-text: CanvasText;
+    --success-border: CanvasText;
+    --warning-bg: Canvas;
+    --warning-text: CanvasText;
+    --warning-border: CanvasText;
+    --danger-bg: Canvas;
+    --danger-text: CanvasText;
+    --danger-border: CanvasText;
+    --info-bg: Canvas;
+    --info-text: CanvasText;
+    --info-border: CanvasText;
+
+    --shadow-sm: none;
+    --shadow-md: none;
+  }
+}
