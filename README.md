@@ -42,6 +42,19 @@ make db-up
 | `make lint-go` | Linter de Go (`golangci-lint`) |
 | `make gen` | Regenera el código a partir de `openapi/openapi.yaml` |
 | `make api` | Corre la API en http://localhost:8080 (necesita `make db-up`) |
+| `make tenantctl ARGS="..."` | Ejecuta la CLI de administración de clínicas (`create`, `list`) |
+
+### Uso de `tenantctl`
+
+Requiere `MONGO_URI` (por defecto el de `.env`) y compilar con `-tags cse` cuando se use cifrado real con `libmongocrypt`, o pasar `--insecure-no-encryption` en desarrollo sin `cse`:
+
+```bash
+# Crear una clínica (reintentar con el mismo slug es idempotente)
+make tenantctl ARGS="create --slug clinica-demo --name 'Clinica Demo' --tier standard --region pa --insecure-no-encryption"
+
+# Listar clínicas registradas
+make tenantctl ARGS="list"
+```
 
 ## Datos
 

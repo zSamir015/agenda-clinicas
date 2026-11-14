@@ -27,7 +27,7 @@ test-crypto:
 lint-go:
 	cd backend && golangci-lint run ./...
 
-.PHONY: gen gen-go api
+.PHONY: gen gen-go api tenantctl
 
 gen: gen-go
 
@@ -36,3 +36,6 @@ gen-go:
 
 api:
 	set -a; [ -f .env ] && . ./.env; set +a; cd backend && go run ./cmd/api
+
+tenantctl:
+	set -a; [ -f .env ] && . ./.env; set +a; cd backend && go run ./cmd/tenantctl $(ARGS)
