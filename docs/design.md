@@ -43,6 +43,7 @@ Expediente clínico (notas, diagnósticos, recetas, adjuntos), facturación elec
 - `api`: servicio HTTP en Go. Monolito modular con los módulos `clinics`, `schedule`, `patients`, `appointments`, `notifications`, `payments`, `auth` y `audit`. Cada módulo expone una interfaz de servicio; ninguno lee colecciones de otro.
 - `worker`: proceso en Go que consume el outbox, envía notificaciones, procesa webhooks, libera holds vencidos y ejecuta migraciones por clínica.
 - `web`: Next.js con App Router y TypeScript. Sirve el panel interno en `app.<dominio>` y la página pública de cada clínica en `<slug>.<dominio>`.
+- El código Go vive en `backend/`, un solo módulo con `cmd/api`, `cmd/worker`, `cmd/tenantctl` e `internal/`.
 - `openapi/`: contrato de la API. El servidor Go se genera con `oapi-codegen` (modo estricto) y el cliente TypeScript con `openapi-typescript` y `openapi-fetch`. El contrato se escribe primero.
 
 Decisiones de librerías en Go: `net/http` de la librería estándar para el ruteo, `log/slog` para logs, `go.mongodb.org/mongo-driver/v2`, configuración por variables de entorno.

@@ -1,8 +1,34 @@
 {
   "editor.formatOnSave": true,
+  "files.eol": "\n",
   "[go]": { "editor.defaultFormatter": "golang.go" },
   "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
   "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
   "[markdown]": { "editor.formatOnSave": false },
-  "files.eol": "\n"
+
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/*.tsbuildinfo": true
+  },
+  "search.exclude": {
+    "**/*.gen.go": true,
+    "**/schema.d.ts": true,
+    "**/package-lock.json": true
+  },
+
+  "explorer.sortOrder": "foldersNestsFiles",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "*.go": "${capture}_test.go",
+    "*.ts": "${capture}.test.ts",
+    "*.tsx": "${capture}.test.tsx",
+    "go.mod": "go.sum, .golangci.yml, oapi-codegen.yaml",
+    "package.json": "package-lock.json, .nvmrc, .prettierrc.json, .prettierignore, eslint.config.mjs, next.config.ts, next-env.d.ts, postcss.config.mjs, tsconfig.json, vitest.config.ts",
+    "README.md": ".editorconfig, .gitignore, .env.example, .env"
+  },
+
+  "gopls": { "ui.semanticTokens": true }
 }

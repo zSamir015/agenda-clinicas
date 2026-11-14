@@ -16,8 +16,7 @@ Go (API y worker), Next.js con TypeScript (web), MongoDB (replica set), OpenAPI 
 
 | Carpeta | Contenido |
 |---|---|
-| `api/` | Servicio HTTP en Go |
-| `worker/` | Procesos en segundo plano en Go |
+| `backend/` | Todo el Go: API, worker y `tenantctl` |
 | `web/` | Panel de la clínica y página pública de reservas |
 | `openapi/` | Contrato de la API |
 | `deploy/` | Docker Compose local e infraestructura |
