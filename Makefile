@@ -27,15 +27,27 @@ test-crypto:
 lint-go:
 	cd backend && golangci-lint run ./...
 
-.PHONY: gen gen-go api tenantctl
+.PHONY: gen gen-go gen-web api web test-web lint-web tenantctl
 
-gen: gen-go
+gen: gen-go gen-web
 
 gen-go:
 	cd backend && go tool oapi-codegen -config oapi-codegen.yaml ../openapi/openapi.yaml
 
+gen-web:
+	cd web && npm run gen:api
+
 api:
 	set -a; [ -f .env ] && . ./.env; set +a; cd backend && go run ./cmd/api
+
+web:
+	cd web && npm run dev
+
+test-web:
+	cd web && npm test
+
+lint-web:
+	cd web && npm run lint && npm run typecheck && npm run format:check
 
 tenantctl:
 	set -a; [ -f .env ] && . ./.env; set +a; cd backend && go run ./cmd/tenantctl $(ARGS)
