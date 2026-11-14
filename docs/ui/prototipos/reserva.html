@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Reservar cita · Clínica del Istmo</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    .container {
+      max-width: 44rem;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-4) var(--space-12);
+    }
+    .clinic-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-4);
+      padding-block-end: var(--space-5);
+      border-bottom: 1px solid var(--border-default);
+      margin-block-end: var(--space-6);
+    }
+    .clinic-header h1 {
+      font-size: var(--text-2xl);
+      line-height: var(--leading-tight);
+      margin: 0 0 var(--space-1);
+    }
+    .clinic-meta {
+      margin: 0;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+    .steps {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 var(--space-6);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-2);
+    }
+    .step {
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+      background: var(--bg-surface);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+    }
+    .step[aria-current="step"] {
+      border-color: var(--accent);
+      background: var(--accent-subtle-bg);
+      color: var(--accent-subtle-text);
+      font-weight: 700;
+    }
+    .section-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin-block-end: var(--space-5);
+      box-shadow: var(--shadow-sm);
+    }
+    fieldset {
+      border: 0;
+      padding: 0;
+      margin: 0;
+    }
+    legend {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      margin-block-end: var(--space-3);
+    }
+    .radio-grid {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .radio-option {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      min-height: var(--space-12);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+    }
+    .radio-option:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--accent-subtle-bg);
+    }
+    .radio-option input {
+      margin-top: 0.2rem;
+      width: 1.15rem;
+      height: 1.15rem;
+      flex-shrink: 0;
+    }
+    .opt-title {
+      display: block;
+      font-weight: 600;
+    }
+    .opt-meta {
+      display: block;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+      gap: var(--space-2);
+      margin-block-start: var(--space-3);
+    }
+    .slot-btn {
+      min-height: var(--space-12);
+      padding: var(--space-2);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .slot-btn[aria-pressed="true"] {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: transparent;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      margin-block-end: var(--space-4);
+    }
+    label {
+      font-size: var(--text-sm);
+      font-weight: 600;
+    }
+    .hint {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"] {
+      width: 100%;
+      min-height: var(--space-12);
+      padding: var(--space-3);
+      font: inherit;
+      font-size: max(1rem, 1em);
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: var(--space-12);
+      padding: var(--space-3) var(--space-4);
+      font: inherit;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+    }
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: transparent;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn-sm {
+      min-height: var(--space-10);
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-sm);
+    }
+    .summary-box {
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-default);
+      margin-block-end: var(--space-4);
+      font-size: var(--text-sm);
+    }
+    .status-banner {
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--success-border);
+      background: var(--success-bg);
+      color: var(--success-text);
+      font-size: var(--text-sm);
+      margin-block-start: var(--space-4);
+    }
+    .status-banner[hidden] {
+      display: none;
+    }
+    .page-footer {
+      text-align: center;
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin-block-start: var(--space-6);
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="clinic-header">
+      <div>
+        <h1>Clínica del Istmo</h1>
+        <p class="clinic-meta">Vía España, Torre Médica Piso 4, Ciudad de Panamá · Horario en America/Panama (UTC-5)</p>
+      </div>
+      <button type="button" class="btn btn-sm" id="theme-toggle" aria-pressed="false">Cambiar tema</button>
+    </header>
+
+    <nav aria-label="Progreso de reserva">
+      <ol class="steps">
+        <li class="step" aria-current="step">1. Servicio y médico</li>
+        <li class="step">2. Fecha y hora</li>
+        <li class="step">3. Código y depósito</li>
+      </ol>
+    </nav>
+
+    <form id="booking-form" action="/bookings" method="POST">
+      <section class="section-card">
+        <fieldset>
+          <legend>1. Elige el servicio</legend>
+          <div class="radio-grid">
+            <label class="radio-option">
+              <input type="radio" name="service" value="general" data-deposit="15.00" checked>
+              <span>
+                <span class="opt-title">Consulta general</span>
+                <span class="opt-meta tabular">30 min · Total $40.00 · Depósito al reservar: $15.00</span>
+              </span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="service" value="control" data-deposit="0.00">
+              <span>
+                <span class="opt-title">Control de seguimiento</span>
+                <span class="opt-meta tabular">20 min · Total $30.00 · Sin depósito previo</span>
+              </span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="service" value="cardio" data-deposit="25.00">
+              <span>
+                <span class="opt-title">Evaluación cardiológica</span>
+                <span class="opt-meta tabular">45 min · Total $75.00 · Depósito al reservar: $25.00</span>
+              </span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="service" value="pediatria" data-deposit="15.00">
+              <span>
+                <span class="opt-title">Pediatría</span>
+                <span class="opt-meta tabular">30 min · Total $45.00 · Depósito al reservar: $15.00</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+      </section>
+
+      <section class="section-card">
+        <fieldset>
+          <legend>2. Médico, fecha y hora</legend>
+          <div class="radio-grid" style="margin-block-end: var(--space-4);">
+            <label class="radio-option">
+              <input type="radio" name="doctor" value="any" checked>
+              <span>
+                <span class="opt-title">Cualquier médico disponible</span>
+                <span class="opt-meta">Muestra el primer horario libre</span>
+              </span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="doctor" value="mendoza">
+              <span>
+                <span class="opt-title">Dra. Valeria Mendoza</span>
+                <span class="opt-meta">Medicina general y cardiología</span>
+              </span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="doctor" value="cedeno">
+              <span>
+                <span class="opt-title">Dr. Ernesto Cedeño</span>
+                <span class="opt-meta">Pediatría</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="booking-date">Fecha de la cita</label>
+            <input type="date" id="booking-date" name="date" value="2026-11-18" required>
+          </div>
+
+          <p class="opt-title" style="font-size: var(--text-sm); margin: 0;">Horarios disponibles (hora de Panamá)</p>
+          <div class="slots-grid" role="group" aria-label="Horarios disponibles">
+            <button type="button" class="slot-btn tabular mono" aria-pressed="false">09:00</button>
+            <button type="button" class="slot-btn tabular mono" aria-pressed="true">09:30</button>
+            <button type="button" class="slot-btn tabular mono" aria-pressed="false">10:30</button>
+            <button type="button" class="slot-btn tabular mono" aria-pressed="false">11:15</button>
+            <button type="button" class="slot-btn tabular mono" aria-pressed="false">14:00</button>
+          </div>
+        </fieldset>
+      </section>
+
+      <section class="section-card">
+        <fieldset>
+          <legend>3. Tus datos y verificación</legend>
+          <div class="field">
+            <label for="patient-name">Nombre completo</label>
+            <input type="text" id="patient-name" name="name" autocomplete="name" required>
+          </div>
+
+          <div class="field">
+            <label for="patient-phone">Teléfono (WhatsApp)</label>
+            <input
+              type="tel"
+              id="patient-phone"
+              name="phone"
+              autocomplete="tel"
+              placeholder="+507 6000-0000"
+              aria-describedby="phone-hint"
+              required
+            >
+            <span class="hint" id="phone-hint">Enviaremos tu código de 6 dígitos y recordatorios por WhatsApp o correo.</span>
+          </div>
+
+          <div class="field">
+            <label for="otp-code">Código de verificación (6 dígitos)</label>
+            <input
+              type="text"
+              id="otp-code"
+              name="otp"
+              class="mono"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              pattern="\d{6}"
+              maxlength="6"
+              aria-describedby="otp-hint"
+              required
+            >
+            <span class="hint" id="otp-hint">Vigencia de 10 minutos.</span>
+          </div>
+
+          <div class="summary-box">
+            <strong>Resumen:</strong> Consulta general · Mié 18 nov, <span class="tabular mono">09:30</span> (America/Panama).
+            Cancelación sin costo hasta 24 horas antes.
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="submit-booking">
+            Confirmar y pagar depósito $15.00
+          </button>
+
+          <div class="status-banner" id="booking-status" role="status" aria-live="polite" hidden></div>
+        </fieldset>
+      </section>
+    </form>
+
+    <footer class="page-footer">
+      Agenda operada con Calenda · <a href="index.html">Volver al índice</a>
+    </footer>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    themeBtn.addEventListener('click', () => {
+      const current = root.getAttribute('data-theme');
+      const isDarkSystem = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const next = current === 'dark' ? 'light' : current === 'light' ? 'dark' : (isDarkSystem ? 'light' : 'dark');
+      root.setAttribute('data-theme', next);
+      themeBtn.setAttribute('aria-pressed', String(next === 'dark'));
+      themeBtn.textContent = next === 'dark' ? 'Tema: oscuro' : 'Tema: claro';
+    });
+
+    const slotBtns = document.querySelectorAll('.slot-btn');
+    slotBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        slotBtns.forEach((b) => b.setAttribute('aria-pressed', 'false'));
+        btn.setAttribute('aria-pressed', 'true');
+      });
+    });
+
+    const submitBtn = document.getElementById('submit-booking');
+    document.querySelectorAll('input[name="service"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        const deposit = radio.dataset.deposit;
+        submitBtn.textContent = deposit === '0.00'
+          ? 'Confirmar reserva'
+          : `Confirmar y pagar depósito $${deposit}`;
+      });
+    });
+
+    document.getElementById('booking-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const status = document.getElementById('booking-status');
+      status.hidden = false;
+      status.textContent = 'Simulación: reserva creada con hold de 15 minutos y redirección a pasarela de pago.';
+    });
+  </script>
+</body>
+</html>
