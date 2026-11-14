@@ -1,0 +1,12 @@
+[
+  { "id": "particular", "name": "Sin seguro (Particular)" },
+  { "id": "assa", "name": "ASSA Compañía de Seguros" },
+  { "id": "mapfre", "name": "Mapfre Panamá" },
+  { "id": "sura", "name": "Seguros SURA Panamá" },
+  { "id": "internacional", "name": "Internacional de Seguros" },
+  { "id": "palig", "name": "Pan-American Life (PALIG)" },
+  { "id": "bcbs", "name": "BlueCross BlueShield of Panama" },
+  { "id": "vivir", "name": "Vivir Seguros" },
+  { "id": "bupa", "name": "Bupa Panamá" },
+  { "id": "ancon", "name": "Aseguradora Ancón" }
+]
