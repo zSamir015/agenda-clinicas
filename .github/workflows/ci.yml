@@ -47,6 +47,28 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  crypto:
+    # Field encryption needs libmongocrypt (cgo). Kept apart so the base `go`
+    # job stays free of the C library. Pinned to 24.04: MongoDB's apt repository
+    # does not publish libmongocrypt for ubuntu-latest (26.04) yet.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Install libmongocrypt
+        run: |
+          sudo apt-get install -y gnupg curl pkg-config
+          curl -fsSL https://www.mongodb.org/static/pgp/libmongocrypt.asc | sudo gpg --dearmor -o /usr/share/keyrings/libmongocrypt.gpg
+          echo "deb [signed-by=/usr/share/keyrings/libmongocrypt.gpg] https://libmongocrypt.s3.amazonaws.com/apt/ubuntu $(. /etc/os-release && echo ${UBUNTU_CODENAME:-$VERSION_CODENAME})/libmongocrypt/1.17 universe" | sudo tee /etc/apt/sources.list.d/libmongocrypt.list
+          sudo apt-get update
+          sudo apt-get install -y libmongocrypt-dev
+          pkg-config --libs --cflags libmongocrypt
+      - run: go test -race -tags cse ./internal/crypto/...
+        working-directory: backend
+
   generated:
     runs-on: ubuntu-latest
     steps:

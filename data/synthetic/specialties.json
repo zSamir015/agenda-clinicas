@@ -1,0 +1,14 @@
+[
+  { "id": "medicina-general", "name": "Medicina General" },
+  { "id": "pediatria", "name": "Pediatría" },
+  { "id": "cardiologia", "name": "Cardiología" },
+  { "id": "dermatologia", "name": "Dermatología" },
+  { "id": "ginecologia", "name": "Ginecología y Obstetricia" },
+  { "id": "ortopedia", "name": "Ortopedia y Traumatología" },
+  { "id": "oftalmologia", "name": "Oftalmología" },
+  { "id": "otorrinolaringologia", "name": "Otorrinolaringología" },
+  { "id": "endocrinologia", "name": "Endocrinología" },
+  { "id": "psicologia", "name": "Psicología Clínica" },
+  { "id": "odontologia", "name": "Odontología General" },
+  { "id": "fisioterapia", "name": "Fisioterapia" }
+]

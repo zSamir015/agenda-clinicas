@@ -27,6 +27,15 @@ export function createApiClient(
 export async function fetchHealth(
   client: ApiClient,
 ): Promise<"ok" | "unavailable"> {
-  void client;
-  throw new Error("TODO: implementar fetchHealth");
+  try {
+    const { data, error } = await client.GET("/readyz", {
+      cache: "no-store",
+    });
+    if (error || data?.status !== "ok") {
+      return "unavailable";
+    }
+    return "ok";
+  } catch {
+    return "unavailable";
+  }
 }

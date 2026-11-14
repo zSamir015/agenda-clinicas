@@ -46,6 +46,19 @@ make db-up
 | `make web` | Corre la aplicación Next.js en http://localhost:3000 |
 | `make test-web` | Pruebas unitarias de la web con Vitest |
 | `make lint-web` | ESLint, verificación de tipos (`tsc`) y formato (`prettier`) en `web/` |
+| `make tenantctl ARGS="..."` | Ejecuta la CLI de administración de clínicas (`create`, `list`) |
+
+### Uso de `tenantctl`
+
+Requiere `MONGO_URI` (por defecto el de `.env`) y compilar con `-tags cse` cuando se use cifrado real con `libmongocrypt`, o pasar `--insecure-no-encryption` en desarrollo sin `cse`:
+
+```bash
+# Crear una clínica (reintentar con el mismo slug es idempotente)
+make tenantctl ARGS="create --slug clinica-demo --name 'Clinica Demo' --tier standard --region pa --insecure-no-encryption"
+
+# Listar clínicas registradas
+make tenantctl ARGS="list"
+```
 
 ## Datos
 

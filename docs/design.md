@@ -78,7 +78,8 @@ Comando `tenantctl move <slug> --to dedicated`: pone la clínica en modo de solo
 - Cifrado explícito a nivel de campo (CSFLE) con `libmongocrypt` desde el driver de Go.
 - Cada clínica tiene su propia llave de datos (DEK) en la colección `platform.keyvault`. Las DEK se cifran con una llave maestra: archivo local en desarrollo y AWS KMS en producción.
 - La cédula usa cifrado determinista para poder buscar por igualdad. El teléfono, el correo, la fecha de nacimiento y el nombre completo usan cifrado aleatorio. La búsqueda por nombre usa un campo aparte con prefijos normalizados en HMAC.
-- Borrar una clínica destruye su DEK (crypto-shredding). Así se cumple el derecho de supresión de la Ley 81 de 2019, incluso en respaldos antiguos.
+- Borrar una clínica destruye su DEK (crypto-shredding). Los procesos nuevos ya no pueden descifrar sus datos; los que tienen la DEK en caché dejan de poder al expirar (configurable). Para que también valga en respaldos antiguos, el key vault no debe respaldarse junto a la llave maestra, o cada clínica debe tener su propia llave de envoltura; se decide en la fase 9 (ver ADR 0007).
+- La compilación con cifrado requiere la etiqueta `cse` y `libmongocrypt`; es opcional para el desarrollo diario (ADR 0007).
 - Ningún dato personal aparece en logs, errores, trazas ni métricas. Los tipos de dominio que contienen datos personales implementan `slog.LogValuer` y se registran redactados.
 
 ## 5. Agenda y reservas
