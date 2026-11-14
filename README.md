@@ -38,6 +38,8 @@ make db-up
 | `make db-up` | Levanta MongoDB (replica set) y Mailpit y espera a que estén sanos |
 | `make db-down` | Detiene los servicios y conserva los datos |
 | `make db-reset` | Detiene los servicios y borra los datos de MongoDB |
+| `make test-go` | Pruebas de Go, con MongoDB real en un contenedor |
+| `make lint-go` | Linter de Go (`golangci-lint`) |
 
 ## Datos
 
