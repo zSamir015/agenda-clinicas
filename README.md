@@ -16,12 +16,32 @@ Go (API y worker), Next.js con TypeScript (web), MongoDB (replica set), OpenAPI 
 
 | Carpeta | Contenido |
 |---|---|
-| `api/` | Servicio HTTP en Go |
-| `worker/` | Procesos en segundo plano en Go |
+| `backend/` | Todo el Go: API, worker y `tenantctl` |
 | `web/` | Panel de la clínica y página pública de reservas |
 | `openapi/` | Contrato de la API |
 | `deploy/` | Docker Compose local e infraestructura |
 | `docs/` | Diseño, hoja de ruta y ADRs |
+
+## Comandos
+
+Requisitos: Docker (en macOS, Colima), Go 1.27 y Node 26.
+
+Primera vez:
+
+```bash
+cp .env.example .env
+make db-up
+```
+
+| Comando | Qué hace |
+|---|---|
+| `make db-up` | Levanta MongoDB (replica set) y Mailpit y espera a que estén sanos |
+| `make db-down` | Detiene los servicios y conserva los datos |
+| `make db-reset` | Detiene los servicios y borra los datos de MongoDB |
+| `make test-go` | Pruebas de Go, con MongoDB real en un contenedor |
+| `make lint-go` | Linter de Go (`golangci-lint`) |
+| `make gen` | Regenera el código a partir de `openapi/openapi.yaml` |
+| `make api` | Corre la API en http://localhost:8080 (necesita `make db-up`) |
 
 ## Datos
 
