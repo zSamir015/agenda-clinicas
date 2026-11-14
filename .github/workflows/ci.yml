@@ -30,8 +30,9 @@ jobs:
 
   crypto:
     # Field encryption needs libmongocrypt (cgo). Kept apart so the base `go`
-    # job stays free of the C library.
-    runs-on: ubuntu-latest
+    # job stays free of the C library. Pinned to 24.04: MongoDB's apt repository
+    # does not publish libmongocrypt for ubuntu-latest (26.04) yet.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
