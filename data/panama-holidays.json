@@ -1,0 +1,705 @@
+{
+  "country": "PA",
+  "timezone": "America/Panama",
+  "years": [
+    2026,
+    2027,
+    2028,
+    2029,
+    2030
+  ],
+  "holidays": [
+    {
+      "date": "2026-01-01",
+      "name": "Año Nuevo",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-01-09",
+      "name": "Día de los Mártires",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-02-16",
+      "name": "Lunes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre habitual de oficinas públicas; no incluido en Art. 46)"
+    },
+    {
+      "date": "2026-02-17",
+      "name": "Martes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-04-03",
+      "name": "Viernes Santo",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "Día del Trabajador",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-11-02",
+      "name": "Día de los Difuntos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre parcial habitual en sector público; no incluido en Art. 46)"
+    },
+    {
+      "date": "2026-11-03",
+      "name": "Separación de Panamá de Colombia",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-11-04",
+      "name": "Día de los Símbolos Patrios",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Ley 2 de 2012; cierre del sector público sujeto a Decreto Ejecutivo anual (no incluido en Art. 46)"
+    },
+    {
+      "date": "2026-11-05",
+      "name": "Consolidación de la Separación en Colón",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-11-10",
+      "name": "Primer Grito de Independencia en La Villa de los Santos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-11-28",
+      "name": "Independencia de Panamá de España",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-12-08",
+      "name": "Día de las Madres",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2026-12-21",
+      "originalDate": "2026-12-20",
+      "name": "Día de Duelo Nacional",
+      "movable": false,
+      "shiftedFromSunday": true,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Ley 291 de 31 de marzo de 2022 (reforma Art. 46 del Código de Trabajo); traslado al lunes siguiente por Art. 47"
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Navidad",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-01-01",
+      "name": "Año Nuevo",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-01-09",
+      "name": "Día de los Mártires",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-02-08",
+      "name": "Lunes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre habitual de oficinas públicas; no incluido en Art. 46)"
+    },
+    {
+      "date": "2027-02-09",
+      "name": "Martes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-03-26",
+      "name": "Viernes Santo",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-05-01",
+      "name": "Día del Trabajador",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-11-02",
+      "name": "Día de los Difuntos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre parcial habitual en sector público; no incluido en Art. 46)"
+    },
+    {
+      "date": "2027-11-03",
+      "name": "Separación de Panamá de Colombia",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-11-04",
+      "name": "Día de los Símbolos Patrios",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Ley 2 de 2012; cierre del sector público sujeto a Decreto Ejecutivo anual (no incluido en Art. 46)"
+    },
+    {
+      "date": "2027-11-05",
+      "name": "Consolidación de la Separación en Colón",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-11-10",
+      "name": "Primer Grito de Independencia en La Villa de los Santos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-11-29",
+      "originalDate": "2027-11-28",
+      "name": "Independencia de Panamá de España",
+      "movable": false,
+      "shiftedFromSunday": true,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46; traslado al lunes siguiente por Art. 47"
+    },
+    {
+      "date": "2027-12-08",
+      "name": "Día de las Madres",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2027-12-20",
+      "name": "Día de Duelo Nacional",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Ley 291 de 31 de marzo de 2022 (reforma Art. 46 del Código de Trabajo)"
+    },
+    {
+      "date": "2027-12-25",
+      "name": "Navidad",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-01-01",
+      "name": "Año Nuevo",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-01-10",
+      "originalDate": "2028-01-09",
+      "name": "Día de los Mártires",
+      "movable": false,
+      "shiftedFromSunday": true,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46; traslado al lunes siguiente por Art. 47"
+    },
+    {
+      "date": "2028-02-28",
+      "name": "Lunes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre habitual de oficinas públicas; no incluido en Art. 46)"
+    },
+    {
+      "date": "2028-02-29",
+      "name": "Martes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-04-14",
+      "name": "Viernes Santo",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-05-01",
+      "name": "Día del Trabajador",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-11-02",
+      "name": "Día de los Difuntos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre parcial habitual en sector público; no incluido en Art. 46)"
+    },
+    {
+      "date": "2028-11-03",
+      "name": "Separación de Panamá de Colombia",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-11-04",
+      "name": "Día de los Símbolos Patrios",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Ley 2 de 2012; cierre del sector público sujeto a Decreto Ejecutivo anual (no incluido en Art. 46)"
+    },
+    {
+      "date": "2028-11-06",
+      "originalDate": "2028-11-05",
+      "name": "Consolidación de la Separación en Colón",
+      "movable": false,
+      "shiftedFromSunday": true,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46; traslado al lunes siguiente por Art. 47"
+    },
+    {
+      "date": "2028-11-10",
+      "name": "Primer Grito de Independencia en La Villa de los Santos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-11-28",
+      "name": "Independencia de Panamá de España",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-12-08",
+      "name": "Día de las Madres",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2028-12-20",
+      "name": "Día de Duelo Nacional",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Ley 291 de 31 de marzo de 2022 (reforma Art. 46 del Código de Trabajo)"
+    },
+    {
+      "date": "2028-12-25",
+      "name": "Navidad",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-01-01",
+      "name": "Año Nuevo",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-01-09",
+      "name": "Día de los Mártires",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-02-12",
+      "name": "Lunes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre habitual de oficinas públicas; no incluido en Art. 46)"
+    },
+    {
+      "date": "2029-02-13",
+      "name": "Martes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-03-30",
+      "name": "Viernes Santo",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-05-01",
+      "name": "Día del Trabajador",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-07-02",
+      "originalDate": "2029-07-01",
+      "name": "Toma de Posesión del Presidente de la República",
+      "movable": false,
+      "shiftedFromSunday": true,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46; traslado al lunes siguiente por Art. 47"
+    },
+    {
+      "date": "2029-11-02",
+      "name": "Día de los Difuntos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre parcial habitual en sector público; no incluido en Art. 46)"
+    },
+    {
+      "date": "2029-11-03",
+      "name": "Separación de Panamá de Colombia",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-11-04",
+      "name": "Día de los Símbolos Patrios",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Ley 2 de 2012; cierre del sector público sujeto a Decreto Ejecutivo anual (no incluido en Art. 46)"
+    },
+    {
+      "date": "2029-11-05",
+      "name": "Consolidación de la Separación en Colón",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-11-10",
+      "name": "Primer Grito de Independencia en La Villa de los Santos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-11-28",
+      "name": "Independencia de Panamá de España",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-12-08",
+      "name": "Día de las Madres",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2029-12-20",
+      "name": "Día de Duelo Nacional",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Ley 291 de 31 de marzo de 2022 (reforma Art. 46 del Código de Trabajo)"
+    },
+    {
+      "date": "2029-12-25",
+      "name": "Navidad",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2030-01-01",
+      "name": "Año Nuevo",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2030-01-09",
+      "name": "Día de los Mártires",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2030-03-04",
+      "name": "Lunes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre habitual de oficinas públicas; no incluido en Art. 46)"
+    },
+    {
+      "date": "2030-03-05",
+      "name": "Martes de Carnaval",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2030-04-19",
+      "name": "Viernes Santo",
+      "movable": true,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2030-05-01",
+      "name": "Día del Trabajador",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2030-11-02",
+      "name": "Día de los Difuntos",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Decreto Ejecutivo anual (cierre parcial habitual en sector público; no incluido en Art. 46)"
+    },
+    {
+      "date": "2030-11-04",
+      "originalDate": "2030-11-03",
+      "name": "Separación de Panamá de Colombia",
+      "movable": false,
+      "shiftedFromSunday": true,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46; traslado al lunes siguiente por Art. 47"
+    },
+    {
+      "date": "2030-11-04",
+      "name": "Día de los Símbolos Patrios",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": false,
+      "requiresDecree": true,
+      "legalSource": "Ley 2 de 2012; cierre del sector público sujeto a Decreto Ejecutivo anual (no incluido en Art. 46)"
+    },
+    {
+      "date": "2030-11-05",
+      "name": "Consolidación de la Separación en Colón",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2030-11-11",
+      "originalDate": "2030-11-10",
+      "name": "Primer Grito de Independencia en La Villa de los Santos",
+      "movable": false,
+      "shiftedFromSunday": true,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46; traslado al lunes siguiente por Art. 47"
+    },
+    {
+      "date": "2030-11-28",
+      "name": "Independencia de Panamá de España",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    },
+    {
+      "date": "2030-12-09",
+      "originalDate": "2030-12-08",
+      "name": "Día de las Madres",
+      "movable": false,
+      "shiftedFromSunday": true,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46; traslado al lunes siguiente por Art. 47"
+    },
+    {
+      "date": "2030-12-20",
+      "name": "Día de Duelo Nacional",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Ley 291 de 31 de marzo de 2022 (reforma Art. 46 del Código de Trabajo)"
+    },
+    {
+      "date": "2030-12-25",
+      "name": "Navidad",
+      "movable": false,
+      "shiftedFromSunday": false,
+      "confirmed": true,
+      "requiresDecree": false,
+      "legalSource": "Código de Trabajo, Art. 46"
+    }
+  ]
+}
