@@ -22,6 +22,23 @@ Go (API y worker), Next.js con TypeScript (web), MongoDB (replica set), OpenAPI 
 | `deploy/` | Docker Compose local e infraestructura |
 | `docs/` | Diseño, hoja de ruta y ADRs |
 
+## Comandos
+
+Requisitos: Docker (en macOS, Colima), Go 1.27 y Node 26.
+
+Primera vez:
+
+```bash
+cp .env.example .env
+make db-up
+```
+
+| Comando | Qué hace |
+|---|---|
+| `make db-up` | Levanta MongoDB (replica set) y Mailpit y espera a que estén sanos |
+| `make db-down` | Detiene los servicios y conserva los datos |
+| `make db-reset` | Detiene los servicios y borra los datos de MongoDB |
+
 ## Datos
 
 La demo usa solo datos sintéticos. El sistema no debe recibir datos reales de pacientes.
