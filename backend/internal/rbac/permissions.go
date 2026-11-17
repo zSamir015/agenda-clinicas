@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // Permission identifies a single capability in the system.
@@ -138,6 +140,17 @@ func ValidateEscalation(actorGrants, targetGrants []Grant) error {
 		if !ok || !ScopeCovers(actorScope, target.Scope) {
 			return fmt.Errorf("%w: %s (%s)", ErrPrivilegeEscalation, target.Permission, target.Scope)
 		}
+	}
+	return nil
+}
+
+// CheckLockedRoleAccess rejects assigning, inviting into, or removing holders
+// of a locked role (owner) unless the actor holds that same role. Identical
+// grant sets are not enough: the admin template grants everything the owner
+// has, so ValidateEscalation alone lets an admin become owner.
+func CheckLockedRoleAccess(actorRoleID bson.ObjectID, role Role) error {
+	if role.Locked && role.ID != actorRoleID {
+		return fmt.Errorf("%w: role %q is reserved to its holders", ErrPrivilegeEscalation, role.Name)
 	}
 	return nil
 }
