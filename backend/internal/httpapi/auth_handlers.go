@@ -325,6 +325,11 @@ func (s *Server) PostAuthLoginPasskeyFinish(ctx context.Context, req PostAuthLog
 		return PostAuthLoginPasskeyFinish401ApplicationProblemPlusJSONResponse{unauthorized("invalid_credentials", "Passkey inválida", "No se pudo verificar la passkey.")}, nil
 	}
 
+	// The clinic can be suspended between begin and finish (challenge TTL).
+	clinic, err := s.auth.Clinics.ByID(ctx, entry.ClinicID)
+	if err != nil || clinic.Status != platform.StatusActive {
+		return PostAuthLoginPasskeyFinish403ApplicationProblemPlusJSONResponse{forbidden("forbidden", "Clínica no disponible", "")}, nil
+	}
 	user, err := s.auth.Users.UserByID(ctx, entry.UserID)
 	if err != nil || user.Status != users.UserActive {
 		return PostAuthLoginPasskeyFinish403ApplicationProblemPlusJSONResponse{forbidden("forbidden", "Usuario deshabilitado", "")}, nil
