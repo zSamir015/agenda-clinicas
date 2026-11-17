@@ -44,32 +44,24 @@ func gone(code, title, detail string) GoneApplicationProblemPlusJSONResponse {
 }
 
 func (s *Server) sessionCookieValue(rawToken string, ttl time.Duration) *string {
-	name := s.auth.CookieName
-	if name == "" {
-		name = auth.DefaultCookieName
-	}
-	v := (&http.Cookie{ //nolint:gosec // Secure controlled by environment config
-		Name:     name,
-		Value:    rawToken,
-		Path:     "/",
-		MaxAge:   int(ttl.Seconds()),
-		HttpOnly: true,
-		Secure:   s.auth.CookieSecure,
-		SameSite: http.SameSiteLaxMode,
-	}).String()
-	return &v
+	return s.sessionCookie(rawToken, int(ttl.Seconds()))
 }
 
 func (s *Server) clearSessionCookieValue() *string {
+	return s.sessionCookie("", -1)
+}
+
+// sessionCookie is the single place that defines the session cookie attributes.
+func (s *Server) sessionCookie(value string, maxAge int) *string {
 	name := s.auth.CookieName
 	if name == "" {
 		name = auth.DefaultCookieName
 	}
 	v := (&http.Cookie{ //nolint:gosec // Secure controlled by environment config
 		Name:     name,
-		Value:    "",
+		Value:    value,
 		Path:     "/",
-		MaxAge:   -1,
+		MaxAge:   maxAge,
 		HttpOnly: true,
 		Secure:   s.auth.CookieSecure,
 		SameSite: http.SameSiteLaxMode,
