@@ -94,7 +94,7 @@ export function TotpSetupCard({ csrfToken, onConfigured }: TotpSetupCardProps) {
         </Alert>
         <ul
           aria-label="Códigos de recuperación de un solo uso"
-          className="grid grid-cols-2 gap-2 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4 font-mono text-[var(--text-sm)] sm:grid-cols-5"
+          className="grid grid-cols-2 gap-2 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4 font-mono text-[length:var(--text-sm)] sm:grid-cols-5"
         >
           {recoveryCodes.map((rc) => (
             <li key={rc} className="select-all">
@@ -110,7 +110,7 @@ export function TotpSetupCard({ csrfToken, onConfigured }: TotpSetupCardProps) {
     return (
       <div className="flex flex-col gap-3">
         {error ? <Alert tone="danger">{error}</Alert> : null}
-        <p className="text-[var(--text-sm)] text-[var(--text-secondary)]">
+        <p className="text-[length:var(--text-sm)] text-[var(--text-secondary)]">
           Como respaldo de tu passkey, define una contraseña de al menos 12
           caracteres y vincula un código temporal TOTP en tu autenticador.
         </p>
@@ -131,18 +131,18 @@ export function TotpSetupCard({ csrfToken, onConfigured }: TotpSetupCardProps) {
     <form onSubmit={handleConfirm} className="flex flex-col gap-4" noValidate>
       {error ? <Alert tone="danger">{error}</Alert> : null}
 
-      <div className="rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4 text-[var(--text-sm)]">
+      <div className="rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4 text-[length:var(--text-sm)]">
         <p className="font-medium text-[var(--text-primary)]">
           1. Agrega esta clave en tu aplicación autenticadora:
         </p>
-        <p className="mt-2 break-all font-mono text-[var(--text-sm)] select-all text-[var(--text-primary)]">
+        <p className="mt-2 break-all font-mono text-[length:var(--text-sm)] select-all text-[var(--text-primary)]">
           {secret}
         </p>
         <details className="mt-2">
-          <summary className="cursor-pointer text-[var(--text-xs)] text-[var(--text-secondary)]">
+          <summary className="cursor-pointer text-[length:var(--text-xs)] text-[var(--text-secondary)]">
             Ver enlace otpauth:// completo
           </summary>
-          <p className="mt-1 break-all font-mono text-[var(--text-xs)] select-all text-[var(--text-muted)]">
+          <p className="mt-1 break-all font-mono text-[length:var(--text-xs)] select-all text-[var(--text-muted)]">
             {uri}
           </p>
         </details>

@@ -36,7 +36,7 @@ export function DialogTitle({
   return (
     <DialogPrimitive.Title
       className={cn(
-        "text-[var(--text-xl)] font-semibold leading-[var(--leading-tight)] text-[var(--text-primary)]",
+        "text-[length:var(--text-xl)] font-semibold leading-[var(--leading-tight)] text-[var(--text-primary)]",
         className,
       )}
       {...props}
@@ -51,7 +51,7 @@ export function DialogDescription({
   return (
     <DialogPrimitive.Description
       className={cn(
-        "mt-1 text-[var(--text-sm)] text-[var(--text-secondary)]",
+        "mt-1 text-[length:var(--text-sm)] text-[var(--text-secondary)]",
         className,
       )}
       {...props}

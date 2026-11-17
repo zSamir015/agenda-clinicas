@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Button } from "./button";
 
 type Theme = "light" | "dark";
 
-function readInitialTheme(): Theme {
+const THEME_CHANGE_EVENT = "agenda-theme-change";
+
+function readClientTheme(): Theme {
   if (typeof window === "undefined") {
     return "light";
   }
@@ -22,14 +24,31 @@ function readInitialTheme(): Theme {
     : "light";
 }
 
+function subscribeTheme(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+  const mql = window.matchMedia?.("(prefers-color-scheme: dark)");
+  window.addEventListener(THEME_CHANGE_EVENT, onStoreChange);
+  mql?.addEventListener?.("change", onStoreChange);
+  return () => {
+    window.removeEventListener(THEME_CHANGE_EVENT, onStoreChange);
+    mql?.removeEventListener?.("change", onStoreChange);
+  };
+}
+
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(readInitialTheme);
+  const theme = useSyncExternalStore(
+    subscribeTheme,
+    readClientTheme,
+    () => "light" as Theme,
+  );
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
     document.documentElement.setAttribute("data-theme", next);
     window.localStorage.setItem("agenda-theme", next);
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }
 
   return (

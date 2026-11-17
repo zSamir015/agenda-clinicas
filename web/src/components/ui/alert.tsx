@@ -31,7 +31,7 @@ export function Alert({
     <div
       role={role}
       className={cn(
-        "rounded-[var(--radius-md)] border px-4 py-3 text-[var(--text-sm)]",
+        "rounded-[var(--radius-md)] border px-4 py-3 text-[length:var(--text-sm)]",
         toneClasses[tone],
         className,
       )}

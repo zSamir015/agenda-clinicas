@@ -32,7 +32,7 @@ export function PasswordField({
     <div className="flex flex-col gap-[var(--space-1)]">
       <Label.Root
         htmlFor={inputId}
-        className="text-[var(--text-sm)] font-medium text-[var(--text-primary)]"
+        className="text-[length:var(--text-sm)] font-medium text-[var(--text-primary)]"
       >
         {label}
         {required ? (
@@ -64,7 +64,7 @@ export function PasswordField({
       {hint ? (
         <p
           id={hintId}
-          className="text-[var(--text-sm)] text-[var(--text-muted)]"
+          className="text-[length:var(--text-sm)] text-[var(--text-muted)]"
         >
           {hint}
         </p>
@@ -73,7 +73,7 @@ export function PasswordField({
         <p
           id={errorId}
           role="alert"
-          className="text-[var(--text-sm)] font-medium text-[var(--danger-text)]"
+          className="text-[length:var(--text-sm)] font-medium text-[var(--danger-text)]"
         >
           {error}
         </p>
