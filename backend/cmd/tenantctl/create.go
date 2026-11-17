@@ -48,6 +48,9 @@ func runCreate(ctx context.Context, args []string, mongoURI string, getenv func(
 	if err != nil {
 		return err
 	}
+	if err := applyOperationsMigrations(ctx, cl.Mongo(), clinic); err != nil {
+		return err
+	}
 
 	_, _ = fmt.Fprintf(stdout, "clinic ready: slug=%s id=%s tier=%s status=%s\n",
 		clinic.Slug, clinic.ID.Hex(), clinic.Tier, clinic.Status)
@@ -144,4 +147,24 @@ func clinicDatabases(c platform.Clinic) []string {
 		return []string{"clinic_" + c.ID.Hex()}
 	}
 	return []string{"operations", "patients_" + c.ID.Hex()}
+}
+
+func operationsDatabase(c platform.Clinic) string {
+	if c.Tier == platform.TierDedicated {
+		return "clinic_" + c.ID.Hex()
+	}
+	return "operations"
+}
+
+func applyOperationsMigrations(ctx context.Context, client *mongo.Client, clinic platform.Clinic) error {
+	platformDB := client.Database("platform")
+	runner, err := migrate.NewRunner(platformDB, migrate.OperationsMigrations())
+	if err != nil {
+		return fmt.Errorf("init operations migrations: %w", err)
+	}
+	opsDB := operationsDatabase(clinic)
+	if err := runner.Run(ctx, client.Database(opsDB)); err != nil {
+		return fmt.Errorf("migrate operations database %s: %w", opsDB, err)
+	}
+	return nil
 }

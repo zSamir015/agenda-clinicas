@@ -76,6 +76,33 @@ func TestCreateAndListIntegration(t *testing.T) {
 				t.Fatalf("list output missing %q:\n%s", want, table)
 			}
 		}
+
+		// Verify operational collections were migrated on operations (standard) and clinic_<id> (dedicated).
+		cl, err := mongodb.Connect(ctx, uri)
+		if err != nil {
+			t.Fatalf("mongodb.Connect: %v", err)
+		}
+		t.Cleanup(func() { _ = cl.Close(context.Background()) })
+
+		repo, err := platform.NewClinicRepository(ctx, cl.Mongo().Database("platform"))
+		if err != nil {
+			t.Fatalf("NewClinicRepository: %v", err)
+		}
+		dedicated, err := repo.BySlug(ctx, "clinica-sur")
+		if err != nil {
+			t.Fatalf("BySlug clinica-sur: %v", err)
+		}
+		for _, dbName := range []string{"operations", "clinic_" + dedicated.ID.Hex()} {
+			names, err := cl.Mongo().Database(dbName).ListCollectionNames(ctx, bson.D{})
+			if err != nil {
+				t.Fatalf("ListCollectionNames %s: %v", dbName, err)
+			}
+			for _, wantColl := range []string{"practitioners", "rooms", "services", "availability_rules", "blocks"} {
+				if !strings.Contains(strings.Join(names, ","), wantColl) {
+					t.Fatalf("database %s missing migrated collection %q: %v", dbName, wantColl, names)
+				}
+			}
+		}
 	})
 
 	t.Run("second attempt resumes after EnsureKey failure", func(t *testing.T) {
@@ -100,7 +127,7 @@ func TestCreateAndListIntegration(t *testing.T) {
 		fakeEnc := crypto.NewFake()
 		tenantMigs := []migrate.Migration{
 			{
-				Version: 1,
+				Version: 100,
 				Name:    "init_marker",
 				Up: func(ctx context.Context, db *mongo.Database) error {
 					_, err := db.Collection("mig_markers").InsertOne(ctx, bson.M{"ok": true})
