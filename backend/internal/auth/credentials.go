@@ -160,19 +160,24 @@ func (r *CredentialRepository) AddPasskey(ctx context.Context, userID bson.Objec
 
 // UpdatePasskeySignCount updates the stored credential after a successful assertion.
 func (r *CredentialRepository) UpdatePasskeySignCount(ctx context.Context, userID bson.ObjectID, cred webauthn.Credential) error {
-	_, err := r.col.UpdateOne(
+	res, err := r.col.UpdateOne(
 		ctx,
 		bson.D{
 			{Key: "userId", Value: userID},
 			{Key: "webauthnCredentials.id", Value: cred.ID},
 		},
 		bson.D{{Key: "$set", Value: bson.D{
-			{Key: "webauthnCredentials.$.authenticator.signCount", Value: cred.Authenticator.SignCount},
+			// webauthn.Credential has no bson tags, so the driver stores the
+			// field names lowercased ("signcount", not "signCount").
+			{Key: "webauthnCredentials.$.authenticator.signcount", Value: cred.Authenticator.SignCount},
 			{Key: "updatedAt", Value: r.now()},
 		}}},
 	)
 	if err != nil {
 		return fmt.Errorf("update passkey sign count: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return ErrInvalidCredentials
 	}
 	return nil
 }
