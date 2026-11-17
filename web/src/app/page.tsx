@@ -19,13 +19,15 @@ async function ApiStatus() {
 export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-4 p-8">
-      <h1 className="text-[var(--text-2xl)] font-semibold">agenda-clinicas</h1>
+      <h1 className="text-[length:var(--text-2xl)] font-semibold">
+        agenda-clinicas
+      </h1>
       <Suspense fallback={<p>Estado de la API: comprobando...</p>}>
         <ApiStatus />
       </Suspense>
       <nav
         aria-label="Accesos rápidos"
-        className="flex flex-wrap gap-3 text-[var(--text-sm)] font-medium"
+        className="flex flex-wrap gap-3 text-[length:var(--text-sm)] font-medium"
       >
         <Link
           href="/login"

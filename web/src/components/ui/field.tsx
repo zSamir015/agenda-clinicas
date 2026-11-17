@@ -47,7 +47,7 @@ export function Field({
     <div className={cn("flex flex-col gap-[var(--space-1)]", className)}>
       <Label.Root
         htmlFor={inputId}
-        className="text-[var(--text-sm)] font-medium text-[var(--text-primary)]"
+        className="text-[length:var(--text-sm)] font-medium text-[var(--text-primary)]"
       >
         {label}
         {required ? (
@@ -60,7 +60,7 @@ export function Field({
       {hint ? (
         <p
           id={hintId}
-          className="text-[var(--text-sm)] text-[var(--text-muted)]"
+          className="text-[length:var(--text-sm)] text-[var(--text-muted)]"
         >
           {hint}
         </p>
@@ -69,7 +69,7 @@ export function Field({
         <p
           id={errorId}
           role="alert"
-          className="text-[var(--text-sm)] font-medium text-[var(--danger-text)]"
+          className="text-[length:var(--text-sm)] font-medium text-[var(--danger-text)]"
         >
           {error}
         </p>

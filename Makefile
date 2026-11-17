@@ -27,7 +27,7 @@ test-crypto:
 lint-go:
 	cd backend && golangci-lint run ./...
 
-.PHONY: gen gen-go gen-web api web test-web lint-web tenantctl
+.PHONY: gen gen-go gen-web api web test-web test-e2e lint-web tenantctl
 
 gen: gen-go gen-web
 
@@ -45,6 +45,9 @@ web:
 
 test-web:
 	cd web && npm test
+
+test-e2e:
+	cd web && npm run test:e2e
 
 lint-web:
 	cd web && npm run lint && npm run typecheck && npm run format:check

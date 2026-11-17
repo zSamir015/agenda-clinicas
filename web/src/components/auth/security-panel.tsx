@@ -127,10 +127,10 @@ export function SecurityPanel() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div>
-            <h1 className="text-[var(--text-2xl)] font-semibold leading-[var(--leading-tight)]">
+            <h1 className="text-[length:var(--text-2xl)] font-semibold leading-[var(--leading-tight)]">
               Seguridad de la cuenta
             </h1>
-            <p className="text-[var(--text-sm)] text-[var(--text-secondary)]">
+            <p className="text-[length:var(--text-sm)] text-[var(--text-secondary)]">
               Administra tus passkeys, contraseña Argon2id y códigos TOTP.
             </p>
           </div>
@@ -141,7 +141,7 @@ export function SecurityPanel() {
 
         {loading ? (
           <Card>
-            <p className="text-[var(--text-sm)] text-[var(--text-secondary)]">
+            <p className="text-[length:var(--text-sm)] text-[var(--text-secondary)]">
               Cargando configuración de seguridad...
             </p>
           </Card>
@@ -191,13 +191,13 @@ export function SecurityPanel() {
                     {security.passkeys.map((pk, idx) => (
                       <li
                         key={pk.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-subtle)] px-4 py-3 text-[var(--text-sm)]"
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-subtle)] px-4 py-3 text-[length:var(--text-sm)]"
                       >
                         <div>
                           <p className="font-medium text-[var(--text-primary)]">
                             Passkey #{idx + 1}
                           </p>
-                          <p className="font-mono text-[var(--text-xs)] text-[var(--text-muted)]">
+                          <p className="font-mono text-[length:var(--text-xs)] text-[var(--text-muted)]">
                             {pk.id}
                           </p>
                         </div>
@@ -216,7 +216,7 @@ export function SecurityPanel() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[var(--text-sm)] text-[var(--text-secondary)]">
+                  <p className="text-[length:var(--text-sm)] text-[var(--text-secondary)]">
                     Aún no has registrado una passkey en esta cuenta.
                   </p>
                 )}

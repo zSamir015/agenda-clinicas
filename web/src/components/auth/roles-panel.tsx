@@ -386,10 +386,10 @@ export function RolesPanel() {
     <AppShell session={session} onSessionCleared={() => setSession(null)}>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-[var(--text-2xl)] font-semibold leading-[var(--leading-tight)]">
+          <h1 className="text-[length:var(--text-2xl)] font-semibold leading-[var(--leading-tight)]">
             Roles y equipo de la clínica
           </h1>
-          <p className="text-[var(--text-sm)] text-[var(--text-secondary)]">
+          <p className="text-[length:var(--text-sm)] text-[var(--text-secondary)]">
             Permisos con alcance propio o de toda la clínica, protección de
             escalada y gestión de miembros.
           </p>
@@ -397,7 +397,7 @@ export function RolesPanel() {
 
         {loading ? (
           <Card>
-            <p className="text-[var(--text-sm)] text-[var(--text-secondary)]">
+            <p className="text-[length:var(--text-sm)] text-[var(--text-secondary)]">
               Cargando roles y membresías...
             </p>
           </Card>
@@ -464,7 +464,7 @@ export function RolesPanel() {
                           <Badge tone="warning">Bloqueado</Badge>
                         ) : null}
                       </div>
-                      <p className="mt-1 text-[var(--text-xs)] text-[var(--text-secondary)]">
+                      <p className="mt-1 text-[length:var(--text-xs)] text-[var(--text-secondary)]">
                         {r.grants.length} permisos asignados
                       </p>
                     </div>
@@ -538,7 +538,7 @@ export function RolesPanel() {
                   </Field>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left text-[var(--text-sm)]">
+                    <table className="w-full border-collapse text-left text-[length:var(--text-sm)]">
                       <thead>
                         <tr className="border-b border-[var(--border-default)] text-[var(--text-secondary)]">
                           <th className="py-2 pr-4 font-semibold">Permiso</th>
@@ -558,7 +558,7 @@ export function RolesPanel() {
                                 <div className="font-medium text-[var(--text-primary)]">
                                   {permissionLabels[perm]}
                                 </div>
-                                <div className="font-mono text-[var(--text-xs)] text-[var(--text-muted)]">
+                                <div className="font-mono text-[length:var(--text-xs)] text-[var(--text-muted)]">
                                   {perm}
                                 </div>
                               </td>
@@ -573,7 +573,7 @@ export function RolesPanel() {
                                       [perm]: e.target.value as ScopeSelection,
                                     }))
                                   }
-                                  className="min-h-10 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 text-[var(--text-sm)] text-[var(--text-primary)] disabled:opacity-50"
+                                  className="min-h-10 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 text-[length:var(--text-sm)] text-[var(--text-primary)] disabled:opacity-50"
                                 >
                                   <option value="none">Sin acceso</option>
                                   <option value="own">Solo propio (own)</option>
@@ -642,7 +642,7 @@ export function RolesPanel() {
                     <div className="flex flex-col gap-[var(--space-1)]">
                       <label
                         htmlFor="invite-role-select"
-                        className="text-[var(--text-sm)] font-medium text-[var(--text-primary)]"
+                        className="text-[length:var(--text-sm)] font-medium text-[var(--text-primary)]"
                       >
                         Rol asignado
                       </label>
@@ -650,7 +650,7 @@ export function RolesPanel() {
                         id="invite-role-select"
                         value={inviteRoleId}
                         onChange={(e) => setInviteRoleId(e.target.value)}
-                        className="min-h-11 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-2 text-[var(--text-base)] text-[var(--text-primary)]"
+                        className="min-h-11 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-2 text-[length:var(--text-base)] text-[var(--text-primary)]"
                       >
                         {roles.map((r) => (
                           <option key={r.id} value={r.id}>
@@ -672,7 +672,7 @@ export function RolesPanel() {
                       title="Enlace de activación de un solo uso"
                     >
                       Comparte este enlace con la persona invitada:
-                      <p className="mt-1 break-all font-mono text-[var(--text-xs)] select-all">
+                      <p className="mt-1 break-all font-mono text-[length:var(--text-xs)] select-all">
                         /invitacion?token={createdToken}
                       </p>
                     </Alert>
@@ -701,7 +701,7 @@ export function RolesPanel() {
                                 : "Suspendido"}
                             </Badge>
                           </div>
-                          <p className="text-[var(--text-xs)] text-[var(--text-secondary)]">
+                          <p className="text-[length:var(--text-xs)] text-[var(--text-secondary)]">
                             {m.email}
                           </p>
                         </div>
@@ -717,7 +717,7 @@ export function RolesPanel() {
                                 e.target.value,
                               )
                             }
-                            className="min-h-10 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 text-[var(--text-sm)]"
+                            className="min-h-10 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 text-[length:var(--text-sm)]"
                           >
                             {roles.map((r) => (
                               <option key={r.id} value={r.id}>

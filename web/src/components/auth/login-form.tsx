@@ -189,7 +189,7 @@ export function LoginForm() {
           <CardHeader>
             <h1
               id="login-heading"
-              className="text-[var(--text-2xl)] font-semibold leading-[var(--leading-tight)] text-[var(--text-primary)]"
+              className="text-[length:var(--text-2xl)] font-semibold leading-[var(--leading-tight)] text-[var(--text-primary)]"
             >
               Iniciar sesión
             </h1>
@@ -273,7 +273,7 @@ export function LoginForm() {
                   onSubmit={handlePasswordLogin}
                   className="mt-4 flex flex-col gap-4"
                 >
-                  <CardTitle className="text-[var(--text-base)]">
+                  <CardTitle className="text-[length:var(--text-base)]">
                     Acceso de respaldo
                   </CardTitle>
                   <PasswordField
@@ -314,7 +314,7 @@ export function LoginForm() {
               ) : null}
             </div>
 
-            <p className="text-center text-[var(--text-sm)] text-[var(--text-secondary)]">
+            <p className="text-center text-[length:var(--text-sm)] text-[var(--text-secondary)]">
               ¿Recibiste una invitación?{" "}
               <Link
                 href="/invitacion"

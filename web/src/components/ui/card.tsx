@@ -32,7 +32,7 @@ export function CardTitle({
   return (
     <h2
       className={cn(
-        "text-[var(--text-xl)] font-semibold leading-[var(--leading-tight)] text-[var(--text-primary)]",
+        "text-[length:var(--text-xl)] font-semibold leading-[var(--leading-tight)] text-[var(--text-primary)]",
         className,
       )}
       {...props}
@@ -47,7 +47,7 @@ export function CardDescription({
   return (
     <p
       className={cn(
-        "text-[var(--text-sm)] text-[var(--text-secondary)]",
+        "text-[length:var(--text-sm)] text-[var(--text-secondary)]",
         className,
       )}
       {...props}

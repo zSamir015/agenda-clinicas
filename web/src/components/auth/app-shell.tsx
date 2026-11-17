@@ -46,13 +46,13 @@ export function AppShell({
           <div className="flex flex-wrap items-center gap-4">
             <Link
               href="/"
-              className="text-[var(--text-lg)] font-bold tracking-tight text-[var(--text-primary)] hover:text-[var(--accent)]"
+              className="text-[length:var(--text-lg)] font-bold tracking-tight text-[var(--text-primary)] hover:text-[var(--accent)]"
             >
               Agenda Clínicas
             </Link>
             <nav
               aria-label="Navegación principal"
-              className="flex flex-wrap items-center gap-2 text-[var(--text-sm)]"
+              className="flex flex-wrap items-center gap-2 text-[length:var(--text-sm)]"
             >
               <Link
                 href="/panel/seguridad"

@@ -170,7 +170,7 @@ export function InvitationFlow() {
       <div className="mx-auto w-full max-w-xl py-4">
         <Card>
           <CardHeader>
-            <h1 className="text-[var(--text-2xl)] font-semibold leading-[var(--leading-tight)] text-[var(--text-primary)]">
+            <h1 className="text-[length:var(--text-2xl)] font-semibold leading-[var(--leading-tight)] text-[var(--text-primary)]">
               Activar cuenta por invitación
             </h1>
             <CardDescription>
@@ -211,7 +211,7 @@ export function InvitationFlow() {
 
             {!session && preview ? (
               <div className="flex flex-col gap-4">
-                <div className="rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4 text-[var(--text-sm)]">
+                <div className="rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4 text-[length:var(--text-sm)]">
                   <p className="font-semibold text-[var(--text-primary)]">
                     {preview.name} ({preview.email})
                   </p>
@@ -239,14 +239,14 @@ export function InvitationFlow() {
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--border-default)] p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-[var(--text-lg)]">
+                    <CardTitle className="text-[length:var(--text-lg)]">
                       Opción principal: Passkey
                     </CardTitle>
                     {passkeyAdded ? (
                       <Badge tone="success">Registrada</Badge>
                     ) : null}
                   </div>
-                  <p className="text-[var(--text-sm)] text-[var(--text-secondary)]">
+                  <p className="text-[length:var(--text-sm)] text-[var(--text-secondary)]">
                     Registra la biometría o llave de seguridad de este
                     dispositivo para entrar sin contraseñas.
                   </p>
@@ -263,7 +263,7 @@ export function InvitationFlow() {
 
                 <div className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--border-default)] p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-[var(--text-lg)]">
+                    <CardTitle className="text-[length:var(--text-lg)]">
                       Respaldo obligatorio: Contraseña + TOTP
                     </CardTitle>
                     {totpConfigured ? (
@@ -279,7 +279,7 @@ export function InvitationFlow() {
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-default)] pt-4">
                   <Link
                     href="/panel/seguridad"
-                    className="text-[var(--text-sm)] font-medium text-[var(--accent)] underline underline-offset-4"
+                    className="text-[length:var(--text-sm)] font-medium text-[var(--accent)] underline underline-offset-4"
                   >
                     Ir a configuración de seguridad
                   </Link>
