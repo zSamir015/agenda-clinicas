@@ -53,7 +53,10 @@ func NewWebAuthnService(rpDisplayName, rpID string, rpOrigins []string, creds *C
 // BeginRegistration starts passkey registration for userID and returns the
 // challenge options plus session data to store for FinishRegistration.
 func (s *WebAuthnService) BeginRegistration(ctx context.Context, userID bson.ObjectID, email, displayName string) (*protocol.CredentialCreation, *webauthn.SessionData, error) {
-	u := s.loadUser(ctx, userID, email, displayName)
+	u, err := s.loadUser(ctx, userID, email, displayName)
+	if err != nil {
+		return nil, nil, err
+	}
 	creation, sessionData, err := s.wa.BeginRegistration(u)
 	if err != nil {
 		return nil, nil, fmt.Errorf("begin webauthn registration: %w", err)
@@ -63,7 +66,10 @@ func (s *WebAuthnService) BeginRegistration(ctx context.Context, userID bson.Obj
 
 // FinishRegistration verifies the client attestation and persists the new passkey.
 func (s *WebAuthnService) FinishRegistration(ctx context.Context, userID bson.ObjectID, email, displayName string, session webauthn.SessionData, r *http.Request) (*webauthn.Credential, error) {
-	u := s.loadUser(ctx, userID, email, displayName)
+	u, err := s.loadUser(ctx, userID, email, displayName)
+	if err != nil {
+		return nil, err
+	}
 	cred, err := s.wa.FinishRegistration(u, session, r)
 	if err != nil {
 		return nil, fmt.Errorf("finish webauthn registration: %w", err)
@@ -76,7 +82,10 @@ func (s *WebAuthnService) FinishRegistration(ctx context.Context, userID bson.Ob
 
 // BeginLogin starts passkey authentication for userID.
 func (s *WebAuthnService) BeginLogin(ctx context.Context, userID bson.ObjectID, email, displayName string) (*protocol.CredentialAssertion, *webauthn.SessionData, error) {
-	u := s.loadUser(ctx, userID, email, displayName)
+	u, err := s.loadUser(ctx, userID, email, displayName)
+	if err != nil {
+		return nil, nil, err
+	}
 	if len(u.Credentials) == 0 {
 		return nil, nil, ErrInvalidCredentials
 	}
@@ -89,7 +98,10 @@ func (s *WebAuthnService) BeginLogin(ctx context.Context, userID bson.ObjectID, 
 
 // FinishLogin verifies the client assertion and updates the credential sign count.
 func (s *WebAuthnService) FinishLogin(ctx context.Context, userID bson.ObjectID, email, displayName string, session webauthn.SessionData, r *http.Request) (*webauthn.Credential, error) {
-	u := s.loadUser(ctx, userID, email, displayName)
+	u, err := s.loadUser(ctx, userID, email, displayName)
+	if err != nil {
+		return nil, err
+	}
 	cred, err := s.wa.FinishLogin(u, session, r)
 	if err != nil {
 		return nil, fmt.Errorf("finish webauthn login: %w", err)
@@ -100,18 +112,21 @@ func (s *WebAuthnService) FinishLogin(ctx context.Context, userID bson.ObjectID,
 	return cred, nil
 }
 
-func (s *WebAuthnService) loadUser(ctx context.Context, userID bson.ObjectID, email, displayName string) WebAuthnUser {
-	stored, err := s.creds.ByUserID(ctx, userID)
+func (s *WebAuthnService) loadUser(ctx context.Context, userID bson.ObjectID, email, displayName string) (WebAuthnUser, error) {
 	var list []webauthn.Credential
-	if err == nil {
+	stored, err := s.creds.ByUserID(ctx, userID)
+	switch {
+	case err == nil:
 		list = stored.WebAuthnCredentials
-	} else if !errors.Is(err, ErrInvalidCredentials) {
-		list = nil
+	case errors.Is(err, ErrInvalidCredentials):
+		// No credentials document yet: user has no passkeys.
+	default:
+		return WebAuthnUser{}, fmt.Errorf("load passkeys: %w", err)
 	}
 	return WebAuthnUser{
 		ID:          userID,
 		Email:       email,
 		DisplayName: displayName,
 		Credentials: list,
-	}
+	}, nil
 }
