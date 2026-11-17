@@ -92,6 +92,10 @@ func TestCreateAndListIntegration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("BySlug clinica-sur: %v", err)
 		}
+		standard, err := repo.BySlug(ctx, "clinica-norte")
+		if err != nil {
+			t.Fatalf("BySlug clinica-norte: %v", err)
+		}
 		for _, dbName := range []string{"operations", "clinic_" + dedicated.ID.Hex()} {
 			names, err := cl.Mongo().Database(dbName).ListCollectionNames(ctx, bson.D{})
 			if err != nil {
@@ -102,6 +106,14 @@ func TestCreateAndListIntegration(t *testing.T) {
 					t.Fatalf("database %s missing migrated collection %q: %v", dbName, wantColl, names)
 				}
 			}
+		}
+		stdHolidays, err := cl.Mongo().Database("operations").Collection("blocks").CountDocuments(ctx, bson.M{"clinicId": standard.ID, "source": "holiday"})
+		if err != nil || stdHolidays == 0 {
+			t.Fatalf("expected Panama holidays preloaded for clinica-norte, got count=%d err=%v", stdHolidays, err)
+		}
+		dedHolidays, err := cl.Mongo().Database("clinic_"+dedicated.ID.Hex()).Collection("blocks").CountDocuments(ctx, bson.M{"clinicId": dedicated.ID, "source": "holiday"})
+		if err != nil || dedHolidays == 0 {
+			t.Fatalf("expected Panama holidays preloaded for clinica-sur, got count=%d err=%v", dedHolidays, err)
 		}
 	})
 

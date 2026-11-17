@@ -12,6 +12,7 @@ import (
 	"github.com/zSamir015/agenda-clinicas/backend/internal/crypto"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/migrate"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/platform"
+	"github.com/zSamir015/agenda-clinicas/backend/internal/schedule"
 )
 
 type createOptions struct {
@@ -50,6 +51,9 @@ func runCreate(ctx context.Context, args []string, mongoURI string, getenv func(
 	}
 	if err := applyOperationsMigrations(ctx, cl.Mongo(), clinic); err != nil {
 		return err
+	}
+	if _, err := schedule.SyncDefaultPanamaHolidays(platform.WithTenant(ctx, clinic), cl.Mongo(), schedule.HolidaySyncOptions{}); err != nil {
+		return fmt.Errorf("sync panama holidays: %w", err)
 	}
 
 	_, _ = fmt.Fprintf(stdout, "clinic ready: slug=%s id=%s tier=%s status=%s\n",

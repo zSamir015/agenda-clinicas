@@ -17,6 +17,7 @@ import (
 	"github.com/zSamir015/agenda-clinicas/backend/internal/mongodb"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/mongodb/mongotest"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/platform"
+	_ "github.com/zSamir015/agenda-clinicas/backend/internal/schedule"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/tenantdb"
 )
 
