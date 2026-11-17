@@ -58,6 +58,19 @@ func (r *ClinicRepository) BySlug(ctx context.Context, slug string) (Clinic, err
 	return c, nil
 }
 
+// ByID returns the clinic with the given ID or ErrTenantNotFound.
+func (r *ClinicRepository) ByID(ctx context.Context, id bson.ObjectID) (Clinic, error) {
+	var c Clinic
+	err := r.col.FindOne(ctx, bson.D{{Key: "_id", Value: id}}).Decode(&c)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return Clinic{}, fmt.Errorf("%w: %s", ErrTenantNotFound, id.Hex())
+	}
+	if err != nil {
+		return Clinic{}, fmt.Errorf("find clinic by id: %w", err)
+	}
+	return c, nil
+}
+
 // List returns every clinic ordered by slug.
 func (r *ClinicRepository) List(ctx context.Context) ([]Clinic, error) {
 	cur, err := r.col.Find(ctx, bson.D{}, options.Find().SetSort(bson.D{{Key: "slug", Value: 1}}))

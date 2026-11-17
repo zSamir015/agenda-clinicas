@@ -161,6 +161,19 @@ func (r *RoleRepository) ByID(ctx context.Context, clinicID, roleID bson.ObjectI
 	return role, nil
 }
 
+// ByName returns a role scoped to clinicID matching name.
+func (r *RoleRepository) ByName(ctx context.Context, clinicID bson.ObjectID, name string) (Role, error) {
+	var role Role
+	err := r.col.FindOne(ctx, bson.D{{Key: "clinicId", Value: clinicID}, {Key: "name", Value: strings.TrimSpace(name)}}).Decode(&role)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return Role{}, ErrRoleNotFound
+	}
+	if err != nil {
+		return Role{}, fmt.Errorf("find role by name: %w", err)
+	}
+	return role, nil
+}
+
 // ListByClinic returns all roles belonging to clinicID ordered by name.
 func (r *RoleRepository) ListByClinic(ctx context.Context, clinicID bson.ObjectID) ([]Role, error) {
 	cur, err := r.col.Find(ctx, bson.D{{Key: "clinicId", Value: clinicID}}, options.Find().SetSort(bson.D{{Key: "name", Value: 1}}))

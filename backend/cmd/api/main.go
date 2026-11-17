@@ -14,10 +14,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/zSamir015/agenda-clinicas/backend/internal/auth"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/config"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/httpapi"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/logging"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/mongodb"
+	"github.com/zSamir015/agenda-clinicas/backend/internal/platform"
+	"github.com/zSamir015/agenda-clinicas/backend/internal/rbac"
+	"github.com/zSamir015/agenda-clinicas/backend/internal/users"
 )
 
 func main() {
@@ -46,9 +50,16 @@ func run() error {
 	}
 	defer func() { _ = db.Close(context.Background()) }()
 
+	initCtx, cancelInit := context.WithTimeout(ctx, 10*time.Second)
+	authDeps, err := initAuthDeps(initCtx, cfg, db)
+	cancelInit()
+	if err != nil {
+		return err
+	}
+
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           httpapi.NewHandler(httpapi.NewServer(db)),
+		Handler:           httpapi.NewHandler(httpapi.NewServer(db, httpapi.WithAuth(authDeps))),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,
@@ -75,4 +86,50 @@ func run() error {
 		}
 	}
 	return nil
+}
+
+func initAuthDeps(ctx context.Context, cfg config.Config, db *mongodb.Client) (httpapi.AuthDeps, error) {
+	platformDB := db.Mongo().Database("platform")
+
+	clinics, err := platform.NewClinicRepository(ctx, platformDB)
+	if err != nil {
+		return httpapi.AuthDeps{}, fmt.Errorf("init clinic repo: %w", err)
+	}
+	roles, err := rbac.NewRoleRepository(ctx, platformDB)
+	if err != nil {
+		return httpapi.AuthDeps{}, fmt.Errorf("init role repo: %w", err)
+	}
+	userRepo, err := users.NewRepository(ctx, platformDB)
+	if err != nil {
+		return httpapi.AuthDeps{}, fmt.Errorf("init users repo: %w", err)
+	}
+	sessions, err := auth.NewSessionRepository(ctx, platformDB)
+	if err != nil {
+		return httpapi.AuthDeps{}, fmt.Errorf("init sessions repo: %w", err)
+	}
+	creds, err := auth.NewCredentialRepository(ctx, platformDB)
+	if err != nil {
+		return httpapi.AuthDeps{}, fmt.Errorf("init credentials repo: %w", err)
+	}
+	otps, err := auth.NewOTPRepository(ctx, platformDB)
+	if err != nil {
+		return httpapi.AuthDeps{}, fmt.Errorf("init otp repo: %w", err)
+	}
+	wa, err := auth.NewWebAuthnService(cfg.WebAuthnRPDisplayName, cfg.WebAuthnRPID, cfg.WebAuthnRPOrigins, creds)
+	if err != nil {
+		return httpapi.AuthDeps{}, fmt.Errorf("init webauthn: %w", err)
+	}
+
+	return httpapi.AuthDeps{
+		Clinics:        clinics,
+		Roles:          roles,
+		Users:          userRepo,
+		Sessions:       sessions,
+		Creds:          creds,
+		OTPs:           otps,
+		WebAuthn:       wa,
+		Limiter:        auth.NewRateLimiter(),
+		CookieSecure:   cfg.IsProduction(),
+		AllowedOrigins: cfg.CORSAllowedOrigins,
+	}, nil
 }
