@@ -249,15 +249,23 @@ export function SecurityPanel() {
                 </CardDescription>
               </CardHeader>
 
-              <TotpSetupCard
-                csrfToken={session.csrfToken}
-                onConfigured={() => {
-                  setNotice(
-                    "Contraseña y TOTP guardados. Conserva tus nuevos códigos de respaldo.",
-                  );
-                  void refreshData();
-                }}
-              />
+              {security?.totpEnabled ? (
+                <Alert tone="info" title="Contraseña y TOTP activos">
+                  Tu respaldo inicial con Argon2id y TOTP ya está configurado.
+                  Para proteger la cuenta, no se pueden sobrescribir desde una
+                  sesión activa sin reautenticación.
+                </Alert>
+              ) : (
+                <TotpSetupCard
+                  csrfToken={session.csrfToken}
+                  onConfigured={() => {
+                    setNotice(
+                      "Contraseña y TOTP guardados. Conserva tus nuevos códigos de respaldo.",
+                    );
+                    void refreshData();
+                  }}
+                />
+              )}
             </Card>
           </>
         )}

@@ -25,13 +25,27 @@ import {
 import { AppShell } from "./app-shell";
 import { PasswordField } from "./password-field";
 
+function safeRedirectTarget(raw: string | null): string {
+  if (
+    !raw ||
+    !raw.startsWith("/") ||
+    raw.startsWith("//") ||
+    raw.startsWith("/\\")
+  ) {
+    return "/panel/seguridad";
+  }
+  return raw;
+}
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialClinic = searchParams.get("clinica") ?? "clinica-demo";
+  const initialEmail = searchParams.get("email") ?? "";
+  const redirectTarget = safeRedirectTarget(searchParams.get("next"));
 
   const [clinicSlug, setClinicSlug] = useState(initialClinic);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [showFallback, setShowFallback] = useState(false);
@@ -134,8 +148,8 @@ export function LoginForm() {
         return;
       }
 
-      setStatusMessage("Sesión iniciada con passkey. Redirigiendo al panel...");
-      router.push("/panel/seguridad");
+      setStatusMessage("Sesión iniciada con passkey. Redirigiendo...");
+      router.push(redirectTarget);
     } finally {
       setPasskeyLoading(false);
     }
@@ -173,8 +187,8 @@ export function LoginForm() {
         );
         return;
       }
-      setStatusMessage("Sesión iniciada. Redirigiendo al panel...");
-      router.push("/panel/seguridad");
+      setStatusMessage("Sesión iniciada. Redirigiendo...");
+      router.push(redirectTarget);
     } catch {
       setError("Error de red al iniciar sesión.");
     } finally {

@@ -317,10 +317,25 @@ func (r *Repository) PreviewInvitation(ctx context.Context, rawToken string) (In
 
 // AcceptInvitation atomically consumes a valid one-time invitation token,
 // creates or loads the user by email, and creates their clinic membership.
-func (r *Repository) AcceptInvitation(ctx context.Context, rawToken string) (User, Membership, error) {
+//
+// The invitation token is not proof of identity: the inviter receives it too.
+// When the invited email already belongs to an account, authenticatedUserID
+// must be that account (the caller proved it with a session); otherwise
+// ErrExistingAccount is returned and the invitation is left unconsumed.
+func (r *Repository) AcceptInvitation(ctx context.Context, rawToken string, authenticatedUserID bson.ObjectID) (User, Membership, error) {
 	existing, now, err := r.findActiveInvitation(ctx, rawToken)
 	if err != nil {
 		return User{}, Membership{}, err
+	}
+	if u, uErr := r.UserByEmail(ctx, existing.Email); uErr == nil {
+		if u.ID != authenticatedUserID {
+			return User{}, Membership{}, ErrExistingAccount
+		}
+		if u.Status != UserActive {
+			return User{}, Membership{}, fmt.Errorf("%w: account is disabled", ErrInvalidUser)
+		}
+	} else if uErr != nil && !errors.Is(uErr, ErrUserNotFound) {
+		return User{}, Membership{}, uErr
 	}
 
 	res := r.invitations.FindOneAndUpdate(
@@ -341,12 +356,23 @@ func (r *Repository) AcceptInvitation(ctx context.Context, rawToken string) (Use
 		return User{}, Membership{}, fmt.Errorf("consume invitation: %w", err)
 	}
 
+	created := false
 	u, err := r.UserByEmail(ctx, consumed.Email)
 	if errors.Is(err, ErrUserNotFound) {
 		u, err = r.CreateUser(ctx, consumed.Email, consumed.Name)
+		created = true
 	}
 	if err != nil {
 		return User{}, Membership{}, err
+	}
+	// An account appeared between the pre-check and consumption: roll back usedAt so the invite is not burned.
+	if !created && u.ID != authenticatedUserID {
+		_, _ = r.invitations.UpdateOne(ctx, bson.D{{Key: "_id", Value: consumed.ID}}, bson.D{{Key: "$unset", Value: bson.D{{Key: "usedAt", Value: ""}}}})
+		return User{}, Membership{}, ErrExistingAccount
+	}
+	if u.Status != UserActive {
+		_, _ = r.invitations.UpdateOne(ctx, bson.D{{Key: "_id", Value: consumed.ID}}, bson.D{{Key: "$unset", Value: bson.D{{Key: "usedAt", Value: ""}}}})
+		return User{}, Membership{}, fmt.Errorf("%w: account is disabled", ErrInvalidUser)
 	}
 
 	m, err := r.AddMembership(ctx, u.ID, consumed.ClinicID, consumed.RoleID)

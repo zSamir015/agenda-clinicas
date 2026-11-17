@@ -251,6 +251,9 @@ func (s *Server) PostUsersInvitations(ctx context.Context, req PostUsersInvitati
 	if err != nil {
 		return PostUsersInvitations400ApplicationProblemPlusJSONResponse{badRequest("role_error", "No se pudo verificar el rol", "")}, nil
 	}
+	if err := rbac.CheckLockedRoleAccess(sess.RoleID, role); err != nil {
+		return PostUsersInvitations403ApplicationProblemPlusJSONResponse{forbidden("privilege_escalation", "Escalada de permisos denegada", "Solo un owner puede invitar con el rol owner.")}, nil
+	}
 	if err := rbac.ValidateEscalation(sess.Grants, role.Grants); err != nil {
 		return PostUsersInvitations403ApplicationProblemPlusJSONResponse{forbidden("privilege_escalation", "Escalada de permisos denegada", "No puedes invitar con un rol que supera tus permisos.")}, nil
 	}
@@ -297,6 +300,9 @@ func (s *Server) PutUsersMemberRole(ctx context.Context, req PutUsersMemberRoleR
 	if err != nil {
 		return PutUsersMemberRole400ApplicationProblemPlusJSONResponse{badRequest("role_error", "No se pudo verificar el rol", "")}, nil
 	}
+	if err := rbac.CheckLockedRoleAccess(sess.RoleID, targetRole); err != nil {
+		return PutUsersMemberRole403ApplicationProblemPlusJSONResponse{forbidden("privilege_escalation", "Escalada de permisos denegada", "Solo un owner puede asignar el rol owner.")}, nil
+	}
 	if err := rbac.ValidateEscalation(sess.Grants, targetRole.Grants); err != nil {
 		return PutUsersMemberRole403ApplicationProblemPlusJSONResponse{forbidden("privilege_escalation", "Escalada de permisos denegada", "No puedes asignar un rol con permisos que no posees.")}, nil
 	}
@@ -308,10 +314,12 @@ func (s *Server) PutUsersMemberRole(ctx context.Context, req PutUsersMemberRoleR
 	if err != nil {
 		return PutUsersMemberRole400ApplicationProblemPlusJSONResponse{badRequest("membership_error", "No se pudo consultar la membresía", "")}, nil
 	}
-	if currentRole, rErr := s.auth.Roles.ByID(ctx, sess.ClinicID, currentMembership.RoleID); rErr == nil {
-		if escErr := rbac.ValidateEscalation(sess.Grants, currentRole.Grants); escErr != nil {
-			return PutUsersMemberRole403ApplicationProblemPlusJSONResponse{forbidden("privilege_escalation", "No puedes modificar el rol de alguien con más permisos", "")}, nil
-		}
+	currentRole, rErr := s.auth.Roles.ByID(ctx, sess.ClinicID, currentMembership.RoleID)
+	if rErr != nil {
+		return PutUsersMemberRole400ApplicationProblemPlusJSONResponse{badRequest("role_error", "No se pudo verificar el rol actual del miembro", "")}, nil
+	}
+	if escErr := errors.Join(rbac.CheckLockedRoleAccess(sess.RoleID, currentRole), rbac.ValidateEscalation(sess.Grants, currentRole.Grants)); escErr != nil {
+		return PutUsersMemberRole403ApplicationProblemPlusJSONResponse{forbidden("privilege_escalation", "No puedes modificar el rol de alguien con más permisos", "")}, nil
 	}
 
 	ownerRole, err := s.auth.Roles.ByName(ctx, sess.ClinicID, rbac.RoleOwner)
@@ -365,10 +373,12 @@ func (s *Server) DeleteUsersMember(ctx context.Context, req DeleteUsersMemberReq
 	if err != nil {
 		return DeleteUsersMember400ApplicationProblemPlusJSONResponse{badRequest("membership_error", "No se pudo consultar la membresía", "")}, nil
 	}
-	if currentRole, rErr := s.auth.Roles.ByID(ctx, sess.ClinicID, currentMembership.RoleID); rErr == nil {
-		if escErr := rbac.ValidateEscalation(sess.Grants, currentRole.Grants); escErr != nil {
-			return DeleteUsersMember403ApplicationProblemPlusJSONResponse{forbidden("privilege_escalation", "No puedes suspender a alguien con más permisos", "")}, nil
-		}
+	currentRole, rErr := s.auth.Roles.ByID(ctx, sess.ClinicID, currentMembership.RoleID)
+	if rErr != nil {
+		return DeleteUsersMember400ApplicationProblemPlusJSONResponse{badRequest("role_error", "No se pudo verificar el rol actual del miembro", "")}, nil
+	}
+	if escErr := errors.Join(rbac.CheckLockedRoleAccess(sess.RoleID, currentRole), rbac.ValidateEscalation(sess.Grants, currentRole.Grants)); escErr != nil {
+		return DeleteUsersMember403ApplicationProblemPlusJSONResponse{forbidden("privilege_escalation", "No puedes suspender a alguien con más permisos", "")}, nil
 	}
 
 	ownerRole, err := s.auth.Roles.ByName(ctx, sess.ClinicID, rbac.RoleOwner)

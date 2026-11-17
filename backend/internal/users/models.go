@@ -52,6 +52,9 @@ var (
 	ErrInvitationExpired = errors.New("users: invitation expired")
 	// ErrInvitationUsed is returned when an invitation has already been accepted.
 	ErrInvitationUsed = errors.New("users: invitation already used")
+	// ErrExistingAccount means the invited email already has an account and the
+	// caller did not prove they own it.
+	ErrExistingAccount = errors.New("users: invited email already has an account")
 )
 
 // User represents a staff member in platform.users.

@@ -143,6 +143,7 @@ func NewHandler(s *Server) http.Handler {
 	}
 
 	protected := s.requireSessionMiddleware(cookieName)(base)
+	optionalSession := s.optionalSessionMiddleware(cookieName)
 	loginLimited := s.rateLimitProblem("login", s.auth.LoginRateLimit, s.auth.RateLimitWindow)(base)
 	otpLimited := s.rateLimitProblem("otp", s.auth.OTPRateLimit, s.auth.RateLimitWindow)(base)
 
@@ -155,7 +156,9 @@ func NewHandler(s *Server) http.Handler {
 			loginLimited.ServeHTTP(w, r)
 		case path == "/auth/invitations/preview":
 			base.ServeHTTP(w, r)
-		case path == "/auth/invitations/accept" || path == "/auth/patient/otp/send" || path == "/auth/patient/otp/verify":
+		case path == "/auth/invitations/accept":
+			optionalSession(otpLimited).ServeHTTP(w, r)
+		case path == "/auth/patient/otp/send" || path == "/auth/patient/otp/verify":
 			otpLimited.ServeHTTP(w, r)
 		case strings.HasPrefix(path, "/auth/") || strings.HasPrefix(path, "/rbac/") || strings.HasPrefix(path, "/users/"):
 			protected.ServeHTTP(w, r)
@@ -178,31 +181,81 @@ func rawSessionTokenFrom(ctx context.Context) (string, bool) {
 	return raw, ok && raw != ""
 }
 
+type authCheckResult struct {
+	sess     auth.Session
+	rawToken string
+	status   int
+	title    string
+	code     string
+	detail   string
+}
+
+func (s *Server) checkSessionAndCSRF(r *http.Request, cookieName string) authCheckResult {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil || cookie.Value == "" {
+		return authCheckResult{
+			status: http.StatusUnauthorized,
+			title:  "Sesión requerida",
+			code:   "unauthorized",
+			detail: "Inicia sesión para continuar.",
+		}
+	}
+
+	sess, err := s.auth.Sessions.Validate(r.Context(), cookie.Value)
+	if err != nil {
+		return authCheckResult{
+			status: http.StatusUnauthorized,
+			title:  "Sesión inválida o expirada",
+			code:   "unauthorized",
+			detail: "Vuelve a iniciar sesión.",
+		}
+	}
+
+	if isMutatingMethod(r.Method) {
+		csrf := r.Header.Get(auth.DefaultCSRFHeader)
+		if csrf == "" || sess.CSRFToken == "" || subtle.ConstantTimeCompare([]byte(csrf), []byte(sess.CSRFToken)) != 1 {
+			return authCheckResult{
+				status: http.StatusForbidden,
+				title:  "Token CSRF inválido",
+				code:   "invalid_csrf",
+				detail: "Recarga la página e intenta nuevamente.",
+			}
+		}
+	}
+
+	return authCheckResult{sess: sess, rawToken: cookie.Value}
+}
+
 func (s *Server) requireSessionMiddleware(cookieName string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			cookie, err := r.Cookie(cookieName)
-			if err != nil || cookie.Value == "" {
-				writeProblem(w, http.StatusUnauthorized, "Sesión requerida", "unauthorized", "Inicia sesión para continuar.")
+			res := s.checkSessionAndCSRF(r, cookieName)
+			if res.status != 0 {
+				writeProblem(w, res.status, res.title, res.code, res.detail)
 				return
 			}
+			ctx := withRawSessionToken(auth.WithSession(r.Context(), res.sess), res.rawToken)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
 
-			sess, err := s.auth.Sessions.Validate(r.Context(), cookie.Value)
-			if err != nil {
-				writeProblem(w, http.StatusUnauthorized, "Sesión inválida o expirada", "unauthorized", "Vuelve a iniciar sesión.")
+// optionalSessionMiddleware attaches the session when the request carries a
+// valid cookie and CSRF token. Unauthenticated requests continue anonymously;
+// valid sessions with an invalid CSRF header fail with 403.
+func (s *Server) optionalSessionMiddleware(cookieName string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			res := s.checkSessionAndCSRF(r, cookieName)
+			if res.status == http.StatusForbidden {
+				writeProblem(w, res.status, res.title, res.code, res.detail)
 				return
 			}
-
-			if isMutatingMethod(r.Method) {
-				csrf := r.Header.Get(auth.DefaultCSRFHeader)
-				if csrf == "" || sess.CSRFToken == "" || subtle.ConstantTimeCompare([]byte(csrf), []byte(sess.CSRFToken)) != 1 {
-					writeProblem(w, http.StatusForbidden, "Token CSRF inválido", "invalid_csrf", "Recarga la página e intenta nuevamente.")
-					return
-				}
+			if res.status != 0 {
+				next.ServeHTTP(w, r)
+				return
 			}
-
-			ctx := auth.WithSession(r.Context(), sess)
-			ctx = withRawSessionToken(ctx, cookie.Value)
+			ctx := withRawSessionToken(auth.WithSession(r.Context(), res.sess), res.rawToken)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
