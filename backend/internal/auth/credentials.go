@@ -92,6 +92,48 @@ func (r *CredentialRepository) SetPasswordAndTOTP(ctx context.Context, userID bs
 	return nil
 }
 
+// ErrCredentialsExist means the user already has a password or TOTP configured.
+var ErrCredentialsExist = errors.New("auth: credentials already configured")
+
+// EnrollPasswordAndTOTP is SetPasswordAndTOTP for first-time setup only. It
+// refuses (ErrCredentialsExist) when a password or TOTP already exists, so a
+// session alone cannot replace the credentials of an established account.
+// The check is part of the write, so concurrent enrollments cannot both win.
+func (r *CredentialRepository) EnrollPasswordAndTOTP(ctx context.Context, userID bson.ObjectID, password, totpSecret string, recoveryHashes []string) error {
+	if userID.IsZero() || totpSecret == "" || len(recoveryHashes) == 0 {
+		return ErrInvalidCredentials
+	}
+	hash, err := HashPassword(password)
+	if err != nil {
+		return err
+	}
+	_, err = r.col.UpdateOne(
+		ctx,
+		bson.D{
+			{Key: "userId", Value: userID},
+			{Key: "passwordHash", Value: bson.D{{Key: "$exists", Value: false}}},
+			{Key: "totpEnabled", Value: bson.D{{Key: "$ne", Value: true}}},
+		},
+		bson.D{{Key: "$set", Value: bson.D{
+			{Key: "passwordHash", Value: hash},
+			{Key: "totpSecret", Value: totpSecret},
+			{Key: "totpEnabled", Value: true},
+			{Key: "recoveryCodeHashes", Value: recoveryHashes},
+			{Key: "updatedAt", Value: r.now()},
+		}}},
+		options.UpdateOne().SetUpsert(true),
+	)
+	// The upsert of a non-matching filter inserts a second userId document,
+	// which the unique index rejects.
+	if mongo.IsDuplicateKeyError(err) {
+		return ErrCredentialsExist
+	}
+	if err != nil {
+		return fmt.Errorf("enroll password and totp: %w", err)
+	}
+	return nil
+}
+
 // VerifyPasswordAndSecondFactor checks the Argon2id password and either a valid
 // TOTP code or a single-use recovery code (consuming the recovery code if used).
 func (r *CredentialRepository) VerifyPasswordAndSecondFactor(ctx context.Context, userID bson.ObjectID, password, code string) error {

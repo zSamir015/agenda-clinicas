@@ -198,6 +198,25 @@ func (r *SessionRepository) RevokeByUser(ctx context.Context, userID bson.Object
 	return nil
 }
 
+// RevokeOthers revokes every active session of userID except the one
+// identified by keepRawToken.
+func (r *SessionRepository) RevokeOthers(ctx context.Context, userID bson.ObjectID, keepRawToken string) error {
+	now := r.now()
+	_, err := r.col.UpdateMany(
+		ctx,
+		bson.D{
+			{Key: "userId", Value: userID},
+			{Key: "tokenHash", Value: bson.D{{Key: "$ne", Value: hashToken(keepRawToken)}}},
+			{Key: "revokedAt", Value: bson.D{{Key: "$exists", Value: false}}},
+		},
+		bson.D{{Key: "$set", Value: bson.D{{Key: "revokedAt", Value: now}}}},
+	)
+	if err != nil {
+		return fmt.Errorf("revoke other sessions: %w", err)
+	}
+	return nil
+}
+
 // InvalidateRoleCache updates the cached grants on all active sessions
 // bound to (clinicID, roleID) when a role's permissions change.
 func (r *SessionRepository) InvalidateRoleCache(ctx context.Context, clinicID, roleID bson.ObjectID, newGrants []rbac.Grant) error {

@@ -143,6 +143,7 @@ func NewHandler(s *Server) http.Handler {
 	}
 
 	protected := s.requireSessionMiddleware(cookieName)(base)
+	optionalSession := s.optionalSessionMiddleware(cookieName)
 	loginLimited := s.rateLimitProblem("login", s.auth.LoginRateLimit, s.auth.RateLimitWindow)(base)
 	otpLimited := s.rateLimitProblem("otp", s.auth.OTPRateLimit, s.auth.RateLimitWindow)(base)
 
@@ -155,7 +156,9 @@ func NewHandler(s *Server) http.Handler {
 			loginLimited.ServeHTTP(w, r)
 		case path == "/auth/invitations/preview":
 			base.ServeHTTP(w, r)
-		case path == "/auth/invitations/accept" || path == "/auth/patient/otp/send" || path == "/auth/patient/otp/verify":
+		case path == "/auth/invitations/accept":
+			optionalSession(otpLimited).ServeHTTP(w, r)
+		case path == "/auth/patient/otp/send" || path == "/auth/patient/otp/verify":
 			otpLimited.ServeHTTP(w, r)
 		case strings.HasPrefix(path, "/auth/") || strings.HasPrefix(path, "/rbac/") || strings.HasPrefix(path, "/users/"):
 			protected.ServeHTTP(w, r)
@@ -201,6 +204,36 @@ func (s *Server) requireSessionMiddleware(cookieName string) func(http.Handler) 
 				}
 			}
 
+			ctx := auth.WithSession(r.Context(), sess)
+			ctx = withRawSessionToken(ctx, cookie.Value)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// optionalSessionMiddleware attaches the session when the request carries a
+// valid cookie (and, for mutating methods, a matching CSRF token). Anything
+// else continues anonymously: the handler decides whether a session is needed.
+func (s *Server) optionalSessionMiddleware(cookieName string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			cookie, err := r.Cookie(cookieName)
+			if err != nil || cookie.Value == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+			sess, err := s.auth.Sessions.Validate(r.Context(), cookie.Value)
+			if err != nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+			if isMutatingMethod(r.Method) {
+				csrf := r.Header.Get(auth.DefaultCSRFHeader)
+				if csrf == "" || sess.CSRFToken == "" || subtle.ConstantTimeCompare([]byte(csrf), []byte(sess.CSRFToken)) != 1 {
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
 			ctx := auth.WithSession(r.Context(), sess)
 			ctx = withRawSessionToken(ctx, cookie.Value)
 			next.ServeHTTP(w, r.WithContext(ctx))

@@ -108,7 +108,7 @@ func TestUsersMembershipsAndInvitationsIntegration(t *testing.T) {
 			t.Fatal("expected hashed token different from rawToken")
 		}
 
-		u, m, err := repo.AcceptInvitation(ctx, rawToken)
+		u, m, err := repo.AcceptInvitation(ctx, rawToken, bson.NilObjectID)
 		if err != nil {
 			t.Fatalf("AcceptInvitation: %v", err)
 		}
@@ -117,7 +117,7 @@ func TestUsersMembershipsAndInvitationsIntegration(t *testing.T) {
 		}
 
 		// Second use of the same one-time token must fail.
-		if _, _, err := repo.AcceptInvitation(ctx, rawToken); !errors.Is(err, users.ErrInvitationUsed) {
+		if _, _, err := repo.AcceptInvitation(ctx, rawToken, bson.NilObjectID); !errors.Is(err, users.ErrInvitationUsed) {
 			t.Fatalf("reused invitation: got %v, want ErrInvitationUsed", err)
 		}
 
@@ -127,7 +127,7 @@ func TestUsersMembershipsAndInvitationsIntegration(t *testing.T) {
 			t.Fatalf("CreateInvitation expired: %v", err)
 		}
 		time.Sleep(10 * time.Millisecond)
-		if _, _, err := repo.AcceptInvitation(ctx, expiredRaw); !errors.Is(err, users.ErrInvitationExpired) {
+		if _, _, err := repo.AcceptInvitation(ctx, expiredRaw, bson.NilObjectID); !errors.Is(err, users.ErrInvitationExpired) {
 			t.Fatalf("expired invitation: got %v, want ErrInvitationExpired", err)
 		}
 	})

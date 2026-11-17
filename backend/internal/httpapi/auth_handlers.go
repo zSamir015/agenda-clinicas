@@ -395,8 +395,16 @@ func (s *Server) PostAuthInvitationAccept(ctx context.Context, req PostAuthInvit
 	if req.Body == nil || strings.TrimSpace(req.Body.Token) == "" {
 		return PostAuthInvitationAccept400ApplicationProblemPlusJSONResponse{badRequest("validation_failed", "Token requerido", "")}, nil
 	}
-	user, membership, err := s.auth.Users.AcceptInvitation(ctx, req.Body.Token)
+	// The token is also known to the inviter, so it never proves identity for an
+	// existing account: that needs a valid session of the same user.
+	var provenUser bson.ObjectID
+	if sess, ok := auth.SessionFrom(ctx); ok && sess.Kind == auth.SessionStaff {
+		provenUser = sess.UserID
+	}
+	user, membership, err := s.auth.Users.AcceptInvitation(ctx, req.Body.Token, provenUser)
 	switch {
+	case errors.Is(err, users.ErrExistingAccount):
+		return PostAuthInvitationAccept409ApplicationProblemPlusJSONResponse{conflict("login_required", "Ya tienes una cuenta", "Inicia sesión con esa cuenta y acepta la invitación desde ahí.")}, nil
 	case errors.Is(err, users.ErrInvitationInvalid):
 		return PostAuthInvitationAccept404ApplicationProblemPlusJSONResponse{notFound("invitation_not_found", "Invitación no encontrada", "")}, nil
 	case errors.Is(err, users.ErrInvitationExpired), errors.Is(err, users.ErrInvitationUsed):
@@ -545,12 +553,21 @@ func (s *Server) PostAuthTotpConfirm(ctx context.Context, req PostAuthTotpConfir
 	if err != nil {
 		return PostAuthTotpConfirm400ApplicationProblemPlusJSONResponse{badRequest("recovery_failed", "No se pudieron generar los códigos de respaldo", "")}, nil
 	}
-	err = s.auth.Creds.SetPasswordAndTOTP(ctx, sess.UserID, req.Body.Password, req.Body.Secret, hashes)
+	// First-time enrollment only: a session must not be able to replace the
+	// password and second factor of an established account.
+	err = s.auth.Creds.EnrollPasswordAndTOTP(ctx, sess.UserID, req.Body.Password, req.Body.Secret, hashes)
+	if errors.Is(err, auth.ErrCredentialsExist) {
+		return PostAuthTotpConfirm400ApplicationProblemPlusJSONResponse{badRequest("credentials_exist", "Las credenciales ya están configuradas", "No se pueden reemplazar desde una sesión activa.")}, nil
+	}
 	if errors.Is(err, auth.ErrWeakPassword) {
 		return PostAuthTotpConfirm400ApplicationProblemPlusJSONResponse{badRequest("weak_password", "Contraseña demasiado corta", "Usa al menos 12 caracteres.")}, nil
 	}
 	if err != nil {
 		return PostAuthTotpConfirm400ApplicationProblemPlusJSONResponse{badRequest("save_failed", "No se pudieron guardar las credenciales", "")}, nil
+	}
+	// New credentials: drop every other session of this user.
+	if raw, ok := rawSessionTokenFrom(ctx); ok {
+		_ = s.auth.Sessions.RevokeOthers(ctx, sess.UserID, raw)
 	}
 	return PostAuthTotpConfirm200JSONResponse{
 		RecoveryCodes: plainCodes,
