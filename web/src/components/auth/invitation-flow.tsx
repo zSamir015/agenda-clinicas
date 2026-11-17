@@ -31,12 +31,16 @@ export function InvitationFlow() {
 
   const [token, setToken] = useState(urlToken);
   const [preview, setPreview] = useState<InvitationPreviewDTO | null>(null);
+  const [existingSession, setExistingSession] = useState<SessionInfo | null>(
+    null,
+  );
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [passkeyAdded, setPasskeyAdded] = useState(false);
   const [totpConfigured, setTotpConfigured] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(Boolean(urlToken));
   const [accepting, setAccepting] = useState(false);
   const [registeringPasskey, setRegisteringPasskey] = useState(false);
+  const [loginRequired, setLoginRequired] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -52,10 +56,25 @@ export function InvitationFlow() {
   }
 
   useEffect(() => {
-    if (!urlToken.trim()) {
-      return;
-    }
     let active = true;
+    const api = createBrowserApiClient();
+    void api
+      .GET("/auth/session")
+      .then(({ data }) => {
+        if (active && data?.kind === "staff") {
+          setExistingSession(data);
+        }
+      })
+      .catch(() => {
+        // Unauthenticated visitors simply accept without an existing session.
+      });
+
+    if (!urlToken.trim()) {
+      return () => {
+        active = false;
+      };
+    }
+
     void runPreview(urlToken)
       .then(({ data, apiErr }) => {
         if (!active) {
@@ -94,6 +113,7 @@ export function InvitationFlow() {
       return;
     }
     setError("");
+    setLoginRequired(false);
     setLoadingPreview(true);
     try {
       const { data, apiErr } = await runPreview(token);
@@ -121,16 +141,27 @@ export function InvitationFlow() {
       return;
     }
     setError("");
+    setLoginRequired(false);
     setAccepting(true);
     try {
       const api = createBrowserApiClient();
       const { data, error: apiErr } = await api.POST(
         "/auth/invitations/accept",
         {
+          ...(existingSession
+            ? { headers: { "X-CSRF-Token": existingSession.csrfToken } }
+            : {}),
           body: { token: token.trim() },
         },
       );
       if (apiErr || !data) {
+        const problemCode =
+          apiErr && typeof apiErr === "object" && "code" in apiErr
+            ? apiErr.code
+            : undefined;
+        if (problemCode === "login_required") {
+          setLoginRequired(true);
+        }
         setError(problemMessage(apiErr, "No se pudo aceptar la invitación."));
         return;
       }
@@ -181,6 +212,26 @@ export function InvitationFlow() {
 
           <div className="flex flex-col gap-5">
             {error ? <Alert tone="danger">{error}</Alert> : null}
+            {loginRequired && preview ? (
+              <Alert
+                tone="warning"
+                title="Inicia sesión para vincular esta clínica"
+              >
+                <p>
+                  El correo <strong>{preview.email}</strong> ya tiene una cuenta
+                  activa. Inicia sesión con esa cuenta para aceptar esta
+                  invitación.
+                </p>
+                <div className="mt-3">
+                  <Link
+                    href={`/login?email=${encodeURIComponent(preview.email)}&next=${encodeURIComponent(`/invitacion?token=${token.trim()}`)}`}
+                    className="inline-flex min-h-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--accent)] px-4 text-[length:var(--text-sm)] font-medium text-[var(--accent-text)] hover:bg-[var(--accent-hover)]"
+                  >
+                    Iniciar sesión y volver aquí
+                  </Link>
+                </div>
+              </Alert>
+            ) : null}
             {notice ? <Alert tone="success">{notice}</Alert> : null}
 
             {!session && !preview ? (

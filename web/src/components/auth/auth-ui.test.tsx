@@ -90,10 +90,28 @@ describe("Auth, invitación y roles UI", () => {
 
   it("previsualiza y acepta una invitación mostrando opciones de passkey y TOTP", async () => {
     searchParamValues = { token: "invite-tok-1" };
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        new Response(
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof Request
+            ? input.url
+            : input.toString();
+      if (url.endsWith("/auth/session")) {
+        return new Response(
+          JSON.stringify({
+            title: "Sesión requerida",
+            status: 401,
+            code: "unauthorized",
+          }),
+          {
+            status: 401,
+            headers: { "Content-Type": "application/problem+json" },
+          },
+        );
+      }
+      if (url.endsWith("/auth/invitations/preview")) {
+        return new Response(
           JSON.stringify({
             email: "nuevo@demo.example",
             name: "Dr. Luis Vega",
@@ -103,21 +121,20 @@ describe("Auth, invitación y roles UI", () => {
             expiresAt: "2026-11-24T00:00:00Z",
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            kind: "staff",
-            clinicId: "c1",
-            clinicSlug: "clinica-panama",
-            clinicName: "Clínica Panamá",
-            csrfToken: "csrf-new",
-            expiresAt: "2026-11-17T23:00:00Z",
-          }),
-          { status: 200, headers: { "Content-Type": "application/json" } },
-        ),
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          kind: "staff",
+          clinicId: "c1",
+          clinicSlug: "clinica-panama",
+          clinicName: "Clínica Panamá",
+          csrfToken: "csrf-new",
+          expiresAt: "2026-11-17T23:00:00Z",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
       );
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     render(<InvitationFlow />);
@@ -136,6 +153,72 @@ describe("Auth, invitación y roles UI", () => {
     expect(
       screen.getByRole("button", { name: /Generar clave TOTP/i }),
     ).toBeInTheDocument();
+  });
+
+  it("muestra enlace de login ante 409 login_required y envía X-CSRF-Token si ya hay sesión", async () => {
+    searchParamValues = { token: "invite-existing" };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const req = input instanceof Request ? input : null;
+      const url = req ? req.url : input.toString();
+      if (url.endsWith("/auth/session")) {
+        return new Response(
+          JSON.stringify({
+            kind: "staff",
+            clinicId: "c1",
+            clinicSlug: "clinica-panama",
+            clinicName: "Clínica Panamá",
+            csrfToken: "csrf-existing",
+            expiresAt: "2026-11-17T23:00:00Z",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      if (url.endsWith("/auth/invitations/preview")) {
+        return new Response(
+          JSON.stringify({
+            email: "yaexiste@demo.example",
+            name: "Dra. Luz",
+            clinicSlug: "clinica-sur",
+            clinicName: "Clínica Sur",
+            roleName: "practitioner",
+            expiresAt: "2026-11-24T00:00:00Z",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      expect(req?.headers.get("X-CSRF-Token")).toBe("csrf-existing");
+      return new Response(
+        JSON.stringify({
+          title: "Ya tienes una cuenta",
+          status: 409,
+          code: "login_required",
+          detail: "Inicia sesión con esa cuenta.",
+        }),
+        {
+          status: 409,
+          headers: { "Content-Type": "application/problem+json" },
+        },
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<InvitationFlow />);
+
+    expect(
+      await screen.findByText(/Dra\. Luz \(yaexiste@demo\.example\)/i),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Aceptar invitación y continuar/i }),
+    );
+
+    const loginLink = await screen.findByRole("link", {
+      name: /Iniciar sesión y volver aquí/i,
+    });
+    expect(loginLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("/login?email=yaexiste%40demo.example"),
+    );
   });
 
   it("muestra roles, bloquea owner y envía creación de rol con X-CSRF-Token", async () => {
