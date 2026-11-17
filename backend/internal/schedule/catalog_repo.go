@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -43,11 +42,7 @@ func NewPractitionerRepository(client *mongo.Client, sharedDB string) *Practitio
 
 // Create validates and inserts p for the context clinic.
 func (r *PractitionerRepository) Create(ctx context.Context, p Practitioner) (Practitioner, error) {
-	p.Name = strings.TrimSpace(p.Name)
-	p.Specialty = strings.TrimSpace(p.Specialty)
-	if p.ServiceIDs == nil {
-		p.ServiceIDs = []bson.ObjectID{}
-	}
+	p.normalize()
 	if err := p.Validate(); err != nil {
 		return Practitioner{}, err
 	}
@@ -81,11 +76,7 @@ func (r *PractitionerRepository) Update(ctx context.Context, p Practitioner) (Pr
 	if p.ID.IsZero() {
 		return Practitioner{}, ErrPractitionerNotFound
 	}
-	p.Name = strings.TrimSpace(p.Name)
-	p.Specialty = strings.TrimSpace(p.Specialty)
-	if p.ServiceIDs == nil {
-		p.ServiceIDs = []bson.ObjectID{}
-	}
+	p.normalize()
 	if err := p.Validate(); err != nil {
 		return Practitioner{}, err
 	}
@@ -131,8 +122,7 @@ func NewRoomRepository(client *mongo.Client, sharedDB string) *RoomRepository {
 
 // Create validates and inserts rm for the context clinic.
 func (r *RoomRepository) Create(ctx context.Context, rm Room) (Room, error) {
-	rm.Name = strings.TrimSpace(rm.Name)
-	rm.RoomType = strings.TrimSpace(rm.RoomType)
+	rm.normalize()
 	if err := rm.Validate(); err != nil {
 		return Room{}, err
 	}
@@ -166,8 +156,7 @@ func (r *RoomRepository) Update(ctx context.Context, rm Room) (Room, error) {
 	if rm.ID.IsZero() {
 		return Room{}, ErrRoomNotFound
 	}
-	rm.Name = strings.TrimSpace(rm.Name)
-	rm.RoomType = strings.TrimSpace(rm.RoomType)
+	rm.normalize()
 	if err := rm.Validate(); err != nil {
 		return Room{}, err
 	}
@@ -204,8 +193,7 @@ func NewServiceRepository(client *mongo.Client, sharedDB string) *ServiceReposit
 
 // Create validates and inserts s for the context clinic.
 func (r *ServiceRepository) Create(ctx context.Context, s Service) (Service, error) {
-	s.Name = strings.TrimSpace(s.Name)
-	s.RoomType = strings.TrimSpace(s.RoomType)
+	s.normalize()
 	if err := s.Validate(); err != nil {
 		return Service{}, err
 	}
@@ -239,8 +227,7 @@ func (r *ServiceRepository) Update(ctx context.Context, s Service) (Service, err
 	if s.ID.IsZero() {
 		return Service{}, ErrServiceNotFound
 	}
-	s.Name = strings.TrimSpace(s.Name)
-	s.RoomType = strings.TrimSpace(s.RoomType)
+	s.normalize()
 	if err := s.Validate(); err != nil {
 		return Service{}, err
 	}
@@ -322,6 +309,10 @@ func (s *CatalogService) CreatePractitioner(ctx context.Context, grants []rbac.G
 	if err := authorizeCatalogWrite(grants); err != nil {
 		return Practitioner{}, err
 	}
+	p.normalize()
+	if err := p.Validate(); err != nil {
+		return Practitioner{}, err
+	}
 	if err := s.services.existAll(ctx, p.ServiceIDs); err != nil {
 		return Practitioner{}, err
 	}
@@ -333,10 +324,25 @@ func (s *CatalogService) UpdatePractitioner(ctx context.Context, grants []rbac.G
 	if err := authorizeCatalogWrite(grants); err != nil {
 		return Practitioner{}, err
 	}
+	if p.ID.IsZero() {
+		return Practitioner{}, ErrPractitionerNotFound
+	}
+	p.normalize()
+	if err := p.Validate(); err != nil {
+		return Practitioner{}, err
+	}
 	if err := s.services.existAll(ctx, p.ServiceIDs); err != nil {
 		return Practitioner{}, err
 	}
 	return s.practitioners.Update(ctx, p)
+}
+
+// GetPractitioner returns a practitioner by ID.
+func (s *CatalogService) GetPractitioner(ctx context.Context, grants []rbac.Grant, id bson.ObjectID) (Practitioner, error) {
+	if err := authorizeCatalogRead(grants); err != nil {
+		return Practitioner{}, err
+	}
+	return s.practitioners.ByID(ctx, id)
 }
 
 // ListPractitioners lists practitioners.
@@ -363,6 +369,14 @@ func (s *CatalogService) UpdateRoom(ctx context.Context, grants []rbac.Grant, rm
 	return s.rooms.Update(ctx, rm)
 }
 
+// GetRoom returns a room by ID.
+func (s *CatalogService) GetRoom(ctx context.Context, grants []rbac.Grant, id bson.ObjectID) (Room, error) {
+	if err := authorizeCatalogRead(grants); err != nil {
+		return Room{}, err
+	}
+	return s.rooms.ByID(ctx, id)
+}
+
 // ListRooms lists rooms.
 func (s *CatalogService) ListRooms(ctx context.Context, grants []rbac.Grant, activeOnly bool) ([]Room, error) {
 	if err := authorizeCatalogRead(grants); err != nil {
@@ -385,6 +399,14 @@ func (s *CatalogService) UpdateService(ctx context.Context, grants []rbac.Grant,
 		return Service{}, err
 	}
 	return s.services.Update(ctx, sv)
+}
+
+// GetService returns a service by ID.
+func (s *CatalogService) GetService(ctx context.Context, grants []rbac.Grant, id bson.ObjectID) (Service, error) {
+	if err := authorizeCatalogRead(grants); err != nil {
+		return Service{}, err
+	}
+	return s.services.ByID(ctx, id)
 }
 
 // ListServices lists bookable services.

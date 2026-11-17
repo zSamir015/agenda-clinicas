@@ -43,7 +43,19 @@ func TestServiceValidation(t *testing.T) {
 		{"negative deposit", func(s *schedule.Service) { s.DepositCents = -1 }, false},
 		{"deposit above price", func(s *schedule.Service) { s.DepositCents = 4000 }, false},
 		{"deposit percent above 100", func(s *schedule.Service) { s.DepositPercent = 101 }, false},
+		{"deposit percent only valid", func(s *schedule.Service) { s.DepositCents, s.DepositPercent = 0, 25 }, true},
+		{"deposit mode with neither cents nor percent", func(s *schedule.Service) { s.DepositCents, s.DepositPercent = 0, 0 }, false},
+		{"deposit mode with both cents and percent", func(s *schedule.Service) { s.DepositPercent = 20 }, false},
+		{"deposit mode with zero price", func(s *schedule.Service) { s.PriceCents, s.DepositCents, s.DepositPercent = 0, 0, 20 }, false},
 		{"free service", func(s *schedule.Service) { s.PaymentMode, s.PriceCents, s.DepositCents = schedule.PaymentNone, 0, 0 }, true},
+		{"none mode with clinic price", func(s *schedule.Service) { s.PaymentMode, s.DepositCents = schedule.PaymentNone, 0 }, true},
+		{"none mode rejects deposit cents", func(s *schedule.Service) { s.PaymentMode = schedule.PaymentNone }, false},
+		{"none mode rejects deposit percent", func(s *schedule.Service) {
+			s.PaymentMode, s.DepositCents, s.DepositPercent = schedule.PaymentNone, 0, 10
+		}, false},
+		{"full mode valid", func(s *schedule.Service) { s.PaymentMode, s.DepositCents = schedule.PaymentFull, 0 }, true},
+		{"full mode with zero price", func(s *schedule.Service) { s.PaymentMode, s.PriceCents, s.DepositCents = schedule.PaymentFull, 0, 0 }, false},
+		{"full mode rejects deposit", func(s *schedule.Service) { s.PaymentMode = schedule.PaymentFull }, false},
 		{"blank name", func(s *schedule.Service) { s.Name = "  " }, false},
 		{"blank room type", func(s *schedule.Service) { s.RoomType = "" }, false},
 	}
@@ -171,9 +183,20 @@ func TestCatalogCRUDRBACAndIsolation(t *testing.T) {
 	}); !errors.Is(err, schedule.ErrInvalidPractitioner) {
 		t.Fatalf("unknown serviceId: got %v", err)
 	}
+	if _, err := e.svc.CreatePractitioner(e.clinicA, e.owner, schedule.Practitioner{
+		Name: "Dr. Dup", Specialty: "Cardiología", ServiceIDs: []bson.ObjectID{svc.ID, svc.ID},
+	}); !errors.Is(err, schedule.ErrInvalidPractitioner) || !strings.Contains(err.Error(), "duplicate serviceId") {
+		t.Fatalf("duplicate serviceId in service call: got %v", err)
+	}
+	userID := bson.NewObjectID()
+	prac.UserID = &userID
 	prac.ServiceIDs = []bson.ObjectID{svc.ID}
-	if prac, err = e.svc.UpdatePractitioner(e.clinicA, e.owner, prac); err != nil || len(prac.ServiceIDs) != 1 {
-		t.Fatalf("UpdatePractitioner: %+v err=%v", prac, err)
+	if prac, err = e.svc.UpdatePractitioner(e.clinicA, e.owner, prac); err != nil || len(prac.ServiceIDs) != 1 || prac.UserID == nil {
+		t.Fatalf("UpdatePractitioner with userId: %+v err=%v", prac, err)
+	}
+	prac.UserID = nil
+	if prac, err = e.svc.UpdatePractitioner(e.clinicA, e.owner, prac); err != nil || prac.UserID != nil {
+		t.Fatalf("UpdatePractitioner unset userId: %+v err=%v", prac, err)
 	}
 
 	// A service of clinic A cannot be attached to a practitioner of clinic B.
@@ -195,6 +218,16 @@ func TestCatalogCRUDRBACAndIsolation(t *testing.T) {
 		t.Fatalf("all rooms = %d, want 1", len(rooms))
 	}
 
+	// Updating to an existing name also hits unique name constraint.
+	otherRoom, err := e.svc.CreateRoom(e.clinicA, e.owner, schedule.Room{Name: "Consultorio 2", RoomType: "consultorio", Active: true})
+	if err != nil {
+		t.Fatalf("CreateRoom 2: %v", err)
+	}
+	otherRoom.Name = room.Name
+	if _, err := e.svc.UpdateRoom(e.clinicA, e.owner, otherRoom); !errors.Is(err, schedule.ErrDuplicateName) {
+		t.Fatalf("duplicate room rename: got %v, want ErrDuplicateName", err)
+	}
+
 	// Isolation: clinic B sees none of clinic A's catalog and cannot update it.
 	if rooms, _ := e.svc.ListRooms(e.clinicB, e.owner, false); len(rooms) != 0 {
 		t.Fatalf("clinic B sees %d rooms of clinic A", len(rooms))
@@ -202,12 +235,21 @@ func TestCatalogCRUDRBACAndIsolation(t *testing.T) {
 	if pracs, _ := e.svc.ListPractitioners(e.clinicB, e.owner, false); len(pracs) != 0 {
 		t.Fatalf("clinic B sees %d practitioners of clinic A", len(pracs))
 	}
+	if _, err := e.svc.GetPractitioner(e.clinicB, e.owner, prac.ID); !errors.Is(err, schedule.ErrPractitionerNotFound) {
+		t.Fatalf("cross-clinic GetPractitioner: got %v, want ErrPractitionerNotFound", err)
+	}
+	if _, err := e.svc.GetRoom(e.clinicB, e.owner, room.ID); !errors.Is(err, schedule.ErrRoomNotFound) {
+		t.Fatalf("cross-clinic GetRoom: got %v, want ErrRoomNotFound", err)
+	}
 	svc.Name = "Hackeado"
 	if _, err := e.svc.UpdateService(e.clinicB, e.owner, svc); !errors.Is(err, schedule.ErrServiceNotFound) {
 		t.Fatalf("cross-clinic update: got %v, want ErrServiceNotFound", err)
 	}
 
-	// RBAC: readers list but cannot write; others do neither.
+	// RBAC: readers get and list but cannot write; others do neither.
+	if got, err := e.svc.GetService(e.clinicA, e.reader, svc.ID); err != nil || got.ID != svc.ID {
+		t.Fatalf("reader GetService: %+v err=%v", got, err)
+	}
 	if _, err := e.svc.ListServices(e.clinicA, e.reader, true); err != nil {
 		t.Fatalf("reader ListServices: %v", err)
 	}
@@ -217,6 +259,7 @@ func TestCatalogCRUDRBACAndIsolation(t *testing.T) {
 			return err
 		}(),
 		"reader updates service": func() error { _, err := e.svc.UpdateService(e.clinicA, e.reader, svc); return err }(),
+		"no access gets prac":    func() error { _, err := e.svc.GetPractitioner(e.clinicA, e.noAccess, prac.ID); return err }(),
 		"no access lists":        func() error { _, err := e.svc.ListRooms(e.clinicA, e.noAccess, false); return err }(),
 		"no access creates":      func() error { _, err := e.svc.CreateService(e.clinicA, e.noAccess, validService()); return err }(),
 	} {

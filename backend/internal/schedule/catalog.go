@@ -71,6 +71,14 @@ type Practitioner struct {
 	UpdatedAt  time.Time       `bson:"updatedAt"`
 }
 
+func (p *Practitioner) normalize() {
+	p.Name = strings.TrimSpace(p.Name)
+	p.Specialty = strings.TrimSpace(p.Specialty)
+	if p.ServiceIDs == nil {
+		p.ServiceIDs = []bson.ObjectID{}
+	}
+}
+
 // Validate checks the domain invariants of a Practitioner.
 func (p Practitioner) Validate() error {
 	if strings.TrimSpace(p.Name) == "" {
@@ -106,6 +114,11 @@ type Room struct {
 	UpdatedAt time.Time     `bson:"updatedAt"`
 }
 
+func (r *Room) normalize() {
+	r.Name = strings.TrimSpace(r.Name)
+	r.RoomType = strings.TrimSpace(r.RoomType)
+}
+
 // Validate checks the domain invariants of a Room.
 func (r Room) Validate() error {
 	if strings.TrimSpace(r.Name) == "" {
@@ -133,6 +146,11 @@ type Service struct {
 	Active          bool          `bson:"active"`
 	CreatedAt       time.Time     `bson:"createdAt"`
 	UpdatedAt       time.Time     `bson:"updatedAt"`
+}
+
+func (s *Service) normalize() {
+	s.Name = strings.TrimSpace(s.Name)
+	s.RoomType = strings.TrimSpace(s.RoomType)
 }
 
 // Validate checks the domain invariants of a Service.
@@ -163,6 +181,26 @@ func (s Service) Validate() error {
 	}
 	if s.DepositPercent < 0 || s.DepositPercent > 100 {
 		return fmt.Errorf("%w: depositPercent must be in [0, 100]", ErrInvalidService)
+	}
+	switch s.PaymentMode {
+	case PaymentNone:
+		if s.DepositCents != 0 || s.DepositPercent != 0 {
+			return fmt.Errorf("%w: depositCents and depositPercent must be zero when paymentMode is none", ErrInvalidService)
+		}
+	case PaymentFull:
+		if s.PriceCents <= 0 {
+			return fmt.Errorf("%w: priceCents must be positive when paymentMode is full", ErrInvalidService)
+		}
+		if s.DepositCents != 0 || s.DepositPercent != 0 {
+			return fmt.Errorf("%w: depositCents and depositPercent must be zero when paymentMode is full", ErrInvalidService)
+		}
+	case PaymentDeposit:
+		if s.PriceCents <= 0 {
+			return fmt.Errorf("%w: priceCents must be positive when paymentMode is deposit", ErrInvalidService)
+		}
+		if (s.DepositCents > 0) == (s.DepositPercent > 0) {
+			return fmt.Errorf("%w: set either depositCents or depositPercent when paymentMode is deposit", ErrInvalidService)
+		}
 	}
 	return nil
 }
