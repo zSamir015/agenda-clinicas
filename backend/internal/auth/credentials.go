@@ -111,21 +111,28 @@ func (r *CredentialRepository) VerifyPasswordAndSecondFactor(ctx context.Context
 		return nil
 	}
 
-	remaining, usedRecovery := ConsumeRecoveryCode(creds.RecoveryCodeHashes, code)
-	if !usedRecovery {
+	if _, usedRecovery := ConsumeRecoveryCode(creds.RecoveryCodeHashes, code); !usedRecovery {
 		return ErrInvalidCredentials
 	}
 
-	_, err = r.col.UpdateOne(
+	// Atomic single-use consumption: the filter requires the hash to still be
+	// present, so concurrent requests cannot both redeem the same code.
+	res, err := r.col.UpdateOne(
 		ctx,
-		bson.D{{Key: "userId", Value: userID}},
-		bson.D{{Key: "$set", Value: bson.D{
-			{Key: "recoveryCodeHashes", Value: remaining},
-			{Key: "updatedAt", Value: r.now()},
-		}}},
+		bson.D{
+			{Key: "userId", Value: userID},
+			{Key: "recoveryCodeHashes", Value: hashRecoveryCode(code)},
+		},
+		bson.D{
+			{Key: "$pull", Value: bson.D{{Key: "recoveryCodeHashes", Value: hashRecoveryCode(code)}}},
+			{Key: "$set", Value: bson.D{{Key: "updatedAt", Value: r.now()}}},
+		},
 	)
 	if err != nil {
 		return fmt.Errorf("consume recovery code: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return ErrInvalidCredentials
 	}
 	return nil
 }
