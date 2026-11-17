@@ -157,12 +157,17 @@ func (r *OTPRepository) Verify(ctx context.Context, clinicID bson.ObjectID, cont
 	}
 
 	if hashOTP(clinicID, contact, code) != rec.CodeHash {
-		_, _ = r.col.UpdateOne(
+		var after patientOTPRecord
+		err := r.col.FindOneAndUpdate(
 			ctx,
 			bson.D{{Key: "_id", Value: rec.ID}},
 			bson.D{{Key: "$inc", Value: bson.D{{Key: "attempts", Value: 1}}}},
-		)
-		if rec.Attempts+1 >= DefaultOTPMaxAttempts {
+			options.FindOneAndUpdate().SetReturnDocument(options.After),
+		).Decode(&after)
+		if err != nil {
+			return fmt.Errorf("record otp attempt: %w", err)
+		}
+		if after.Attempts >= DefaultOTPMaxAttempts {
 			return ErrOTPMaxAttempts
 		}
 		return ErrOTPInvalid
