@@ -479,8 +479,8 @@ func (s *Server) PostAuthPasskeyRegisterFinish(ctx context.Context, req PostAuth
 		return PostAuthPasskeyRegisterFinish400ApplicationProblemPlusJSONResponse{badRequest("passkey_unavailable", "Passkeys no disponibles", "")}, nil
 	}
 
-	entry, ok := s.challenges.take(req.Body.ChallengeId, challengeRegister)
-	if !ok || entry.UserID != sess.UserID {
+	entry, ok := s.challenges.takeOwned(req.Body.ChallengeId, challengeRegister, sess.UserID)
+	if !ok {
 		return PostAuthPasskeyRegisterFinish400ApplicationProblemPlusJSONResponse{badRequest("challenge_expired", "Reto vencido o inválido", "Vuelve a iniciar el registro de passkey.")}, nil
 	}
 

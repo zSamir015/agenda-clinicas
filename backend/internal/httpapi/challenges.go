@@ -70,6 +70,14 @@ func (s *challengeStore) put(entry challengeEntry) (string, error) {
 
 // take atomically retrieves and removes a non-expired challenge entry.
 func (s *challengeStore) take(id string, expected challengeKind) (challengeEntry, bool) {
+	return s.takeOwned(id, expected, bson.NilObjectID)
+}
+
+// takeOwned is take with an ownership check. When owner is non-zero, the entry
+// is consumed only if it belongs to owner: a caller presenting someone else's
+// challenge ID must not burn it and break the owner's in-flight ceremony.
+// An expired entry is always dropped.
+func (s *challengeStore) takeOwned(id string, expected challengeKind, owner bson.ObjectID) (challengeEntry, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -77,10 +85,13 @@ func (s *challengeStore) take(id string, expected challengeKind) (challengeEntry
 	if !ok {
 		return challengeEntry{}, false
 	}
-	delete(s.entries, id)
-
-	if entry.Kind != expected || !entry.ExpiresAt.After(s.now()) {
+	if !entry.ExpiresAt.After(s.now()) {
+		delete(s.entries, id)
 		return challengeEntry{}, false
 	}
+	if entry.Kind != expected || (!owner.IsZero() && entry.UserID != owner) {
+		return challengeEntry{}, false
+	}
+	delete(s.entries, id)
 	return entry, true
 }
