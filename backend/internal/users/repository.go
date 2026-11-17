@@ -309,34 +309,24 @@ func (r *Repository) CreateInvitation(ctx context.Context, clinicID bson.ObjectI
 	return inv, rawToken, nil
 }
 
+// PreviewInvitation validates rawToken and returns the invitation without consuming it.
+func (r *Repository) PreviewInvitation(ctx context.Context, rawToken string) (Invitation, error) {
+	inv, _, err := r.findActiveInvitation(ctx, rawToken)
+	return inv, err
+}
+
 // AcceptInvitation atomically consumes a valid one-time invitation token,
 // creates or loads the user by email, and creates their clinic membership.
 func (r *Repository) AcceptInvitation(ctx context.Context, rawToken string) (User, Membership, error) {
-	if strings.TrimSpace(rawToken) == "" {
-		return User{}, Membership{}, ErrInvitationInvalid
-	}
-	tokenHash := hashToken(rawToken)
-	now := r.now()
-
-	var existing Invitation
-	err := r.invitations.FindOne(ctx, bson.D{{Key: "tokenHash", Value: tokenHash}}).Decode(&existing)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return User{}, Membership{}, ErrInvitationInvalid
-	}
+	existing, now, err := r.findActiveInvitation(ctx, rawToken)
 	if err != nil {
-		return User{}, Membership{}, fmt.Errorf("find invitation: %w", err)
-	}
-	if existing.UsedAt != nil {
-		return User{}, Membership{}, ErrInvitationUsed
-	}
-	if !existing.ExpiresAt.After(now) {
-		return User{}, Membership{}, ErrInvitationExpired
+		return User{}, Membership{}, err
 	}
 
 	res := r.invitations.FindOneAndUpdate(
 		ctx,
 		bson.D{
-			{Key: "tokenHash", Value: tokenHash},
+			{Key: "tokenHash", Value: existing.TokenHash},
 			{Key: "usedAt", Value: bson.D{{Key: "$exists", Value: false}}},
 			{Key: "expiresAt", Value: bson.D{{Key: "$gt", Value: now}}},
 		},
@@ -364,6 +354,30 @@ func (r *Repository) AcceptInvitation(ctx context.Context, rawToken string) (Use
 		return User{}, Membership{}, err
 	}
 	return u, m, nil
+}
+
+func (r *Repository) findActiveInvitation(ctx context.Context, rawToken string) (Invitation, time.Time, error) {
+	if strings.TrimSpace(rawToken) == "" {
+		return Invitation{}, time.Time{}, ErrInvitationInvalid
+	}
+	tokenHash := hashToken(rawToken)
+	now := r.now()
+
+	var existing Invitation
+	err := r.invitations.FindOne(ctx, bson.D{{Key: "tokenHash", Value: tokenHash}}).Decode(&existing)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return Invitation{}, time.Time{}, ErrInvitationInvalid
+	}
+	if err != nil {
+		return Invitation{}, time.Time{}, fmt.Errorf("find invitation: %w", err)
+	}
+	if existing.UsedAt != nil {
+		return Invitation{}, time.Time{}, ErrInvitationUsed
+	}
+	if !existing.ExpiresAt.After(now) {
+		return Invitation{}, time.Time{}, ErrInvitationExpired
+	}
+	return existing, now, nil
 }
 
 func hashToken(raw string) string {

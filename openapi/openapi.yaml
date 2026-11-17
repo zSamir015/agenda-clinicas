@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: agenda-clinicas API
-  version: 0.1.0
+  version: 0.2.0
 paths:
   /healthz:
     get:
@@ -31,7 +31,555 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /auth/session:
+    get:
+      operationId: getAuthSession
+      summary: Devuelve la sesión autenticada actual (personal o paciente).
+      responses:
+        "200":
+          description: Sesión activa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/logout:
+    post:
+      operationId: postAuthLogout
+      summary: Revoca la sesión actual y limpia la cookie.
+      responses:
+        "204":
+          description: Sesión cerrada.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /auth/security:
+    get:
+      operationId: getAuthSecurity
+      summary: Estado de passkeys, TOTP y códigos de recuperación del usuario autenticado.
+      responses:
+        "200":
+          description: Estado de seguridad.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecurityStatus"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /auth/login/password:
+    post:
+      operationId: postAuthLoginPassword
+      summary: Inicia sesión de personal con contraseña y código TOTP o código de recuperación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordLoginRequest"
+      responses:
+        "200":
+          description: Sesión iniciada.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /auth/login/passkey/begin:
+    post:
+      operationId: postAuthLoginPasskeyBegin
+      summary: Inicia el reto WebAuthn para iniciar sesión con passkey.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasskeyLoginBeginRequest"
+      responses:
+        "200":
+          description: Opciones WebAuthn y challengeId.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasskeyChallengeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /auth/login/passkey/finish:
+    post:
+      operationId: postAuthLoginPasskeyFinish
+      summary: Completa el reto WebAuthn e inicia la sesión del personal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasskeyFinishRequest"
+      responses:
+        "200":
+          description: Sesión iniciada.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /auth/invitations/preview:
+    post:
+      operationId: postAuthInvitationPreview
+      summary: Consulta los datos de una invitación sin consumir el token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationTokenRequest"
+      responses:
+        "200":
+          description: Datos de la invitación.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationPreview"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "410":
+          $ref: "#/components/responses/Gone"
+  /auth/invitations/accept:
+    post:
+      operationId: postAuthInvitationAccept
+      summary: Consume el enlace de invitación, crea o vincula al usuario e inicia su sesión.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationTokenRequest"
+      responses:
+        "200":
+          description: Invitación aceptada y sesión iniciada.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "410":
+          $ref: "#/components/responses/Gone"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /auth/passkeys/register/begin:
+    post:
+      operationId: postAuthPasskeyRegisterBegin
+      summary: Inicia el registro de una nueva passkey para el usuario autenticado.
+      responses:
+        "200":
+          description: Opciones de creación WebAuthn y challengeId.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasskeyChallengeResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /auth/passkeys/register/finish:
+    post:
+      operationId: postAuthPasskeyRegisterFinish
+      summary: Verifica y guarda la nueva passkey del usuario autenticado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasskeyFinishRequest"
+      responses:
+        "200":
+          description: Passkey registrada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasskeySummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /auth/totp/setup:
+    post:
+      operationId: postAuthTotpSetup
+      summary: Genera un secreto TOTP y su URI otpauth para configurar respaldo.
+      responses:
+        "200":
+          description: Secreto TOTP y URI.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TotpSetupResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /auth/totp/confirm:
+    post:
+      operationId: postAuthTotpConfirm
+      summary: Guarda contraseña Argon2id, activa TOTP y entrega 10 códigos de recuperación de un solo uso.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TotpConfirmRequest"
+      responses:
+        "200":
+          description: TOTP activado y códigos de recuperación generados.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TotpConfirmResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /auth/patient/otp/send:
+    post:
+      operationId: postAuthPatientOtpSend
+      summary: Envía un código OTP de 6 dígitos al teléfono o correo del paciente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientOtpSendRequest"
+      responses:
+        "202":
+          description: Código emitido.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientOtpSendResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /auth/patient/otp/verify:
+    post:
+      operationId: postAuthPatientOtpVerify
+      summary: Verifica el OTP de 6 dígitos y abre sesión de paciente de 30 minutos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientOtpVerifyRequest"
+      responses:
+        "200":
+          description: Sesión de paciente iniciada.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "410":
+          $ref: "#/components/responses/Gone"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /rbac/permissions:
+    get:
+      operationId: getRbacPermissions
+      summary: Devuelve el catálogo fijo de permisos y alcances.
+      responses:
+        "200":
+          description: Catálogo de permisos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionCatalog"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /rbac/roles:
+    get:
+      operationId: getRbacRoles
+      summary: Lista los roles configurados en la clínica actual.
+      responses:
+        "200":
+          description: Roles de la clínica.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolesListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: postRbacRoles
+      summary: Crea un rol personalizado en la clínica actual respetando anti-escalada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleInput"
+      responses:
+        "201":
+          description: Rol creado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /rbac/roles/{roleId}:
+    parameters:
+      - name: roleId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: putRbacRole
+      summary: Actualiza nombre y permisos de un rol editable e invalida la caché de sesiones.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleInput"
+      responses:
+        "200":
+          description: Rol actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      operationId: deleteRbacRole
+      summary: Elimina un rol no bloqueado de la clínica actual.
+      responses:
+        "204":
+          description: Rol eliminado.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /users/members:
+    get:
+      operationId: getUsersMembers
+      summary: Lista las membresías y usuarios de la clínica actual.
+      responses:
+        "200":
+          description: Miembros de la clínica.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembersListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /users/invitations:
+    post:
+      operationId: postUsersInvitations
+      summary: Crea una invitación de un solo uso para sumar personal a la clínica.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvitationRequest"
+      responses:
+        "201":
+          description: Invitación creada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedInvitation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /users/members/{userId}/role:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: putUsersMemberRole
+      summary: Cambia el rol de un miembro de la clínica respetando anti-escalada y protección de último owner.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberRoleRequest"
+      responses:
+        "200":
+          description: Membresía actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /users/members/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      operationId: deleteUsersMember
+      summary: Suspende la membresía de un miembro de la clínica y revoca sus sesiones.
+      responses:
+        "204":
+          description: Membresía revocada.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
 components:
+  responses:
+    BadRequest:
+      description: Datos de entrada inválidos.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Unauthorized:
+      description: No autenticado o credenciales inválidas.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Forbidden:
+      description: Sin permiso suficiente o CSRF inválido.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Recurso no encontrado.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: Conflicto con el estado actual.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Gone:
+      description: Token o código vencido o ya utilizado.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    TooManyRequests:
+      description: Límite de peticiones superado.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   schemas:
     Health:
       type: object
@@ -56,4 +604,319 @@ components:
         instance:
           type: string
         code:
+          type: string
+    Permission:
+      type: string
+      enum:
+        - appointments.read
+        - appointments.write
+        - schedule.manage
+        - patients.read
+        - patients.write
+        - patients.export
+        - patients.delete
+        - payments.read
+        - payments.refund
+        - users.manage
+        - roles.manage
+        - clinic.settings
+    Scope:
+      type: string
+      enum: [own, all]
+    Grant:
+      type: object
+      required: [permission, scope]
+      properties:
+        permission:
+          $ref: "#/components/schemas/Permission"
+        scope:
+          $ref: "#/components/schemas/Scope"
+    SessionKind:
+      type: string
+      enum: [staff, patient]
+    Session:
+      type: object
+      required: [kind, clinicId, clinicSlug, clinicName, csrfToken, expiresAt]
+      properties:
+        kind:
+          $ref: "#/components/schemas/SessionKind"
+        clinicId:
+          type: string
+        clinicSlug:
+          type: string
+        clinicName:
+          type: string
+        csrfToken:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        userId:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        roleId:
+          type: string
+        roleName:
+          type: string
+        grants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Grant"
+        hasPasskey:
+          type: boolean
+        totpEnabled:
+          type: boolean
+        patientContact:
+          type: string
+    PasswordLoginRequest:
+      type: object
+      required: [clinicSlug, email, password, code]
+      properties:
+        clinicSlug:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        code:
+          type: string
+    PasskeyLoginBeginRequest:
+      type: object
+      required: [clinicSlug, email]
+      properties:
+        clinicSlug:
+          type: string
+        email:
+          type: string
+          format: email
+    PasskeyChallengeResponse:
+      type: object
+      required: [challengeId, options]
+      properties:
+        challengeId:
+          type: string
+        options:
+          type: object
+          additionalProperties: true
+    PasskeyFinishRequest:
+      type: object
+      required: [challengeId, credential]
+      properties:
+        challengeId:
+          type: string
+        credential:
+          type: object
+          additionalProperties: true
+    InvitationTokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    InvitationPreview:
+      type: object
+      required: [email, name, clinicSlug, clinicName, roleName, expiresAt]
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        clinicSlug:
+          type: string
+        clinicName:
+          type: string
+        roleName:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    PasskeySummary:
+      type: object
+      required: [id, transports]
+      properties:
+        id:
+          type: string
+        transports:
+          type: array
+          items:
+            type: string
+    SecurityStatus:
+      type: object
+      required: [totpEnabled, recoveryCodesRemaining, passkeys]
+      properties:
+        totpEnabled:
+          type: boolean
+        recoveryCodesRemaining:
+          type: integer
+        passkeys:
+          type: array
+          items:
+            $ref: "#/components/schemas/PasskeySummary"
+    TotpSetupResponse:
+      type: object
+      required: [secret, uri]
+      properties:
+        secret:
+          type: string
+        uri:
+          type: string
+    TotpConfirmRequest:
+      type: object
+      required: [password, secret, code]
+      properties:
+        password:
+          type: string
+        secret:
+          type: string
+        code:
+          type: string
+    TotpConfirmResponse:
+      type: object
+      required: [recoveryCodes]
+      properties:
+        recoveryCodes:
+          type: array
+          items:
+            type: string
+    PatientOtpSendRequest:
+      type: object
+      required: [clinicSlug, contact]
+      properties:
+        clinicSlug:
+          type: string
+        contact:
+          type: string
+    PatientOtpSendResponse:
+      type: object
+      required: [expiresInSeconds]
+      properties:
+        expiresInSeconds:
+          type: integer
+    PatientOtpVerifyRequest:
+      type: object
+      required: [clinicSlug, contact, code]
+      properties:
+        clinicSlug:
+          type: string
+        contact:
+          type: string
+        code:
+          type: string
+    PermissionCatalog:
+      type: object
+      required: [permissions, scopes]
+      properties:
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Permission"
+        scopes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Scope"
+    Role:
+      type: object
+      required: [id, name, template, locked, grants, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        template:
+          type: boolean
+        locked:
+          type: boolean
+        grants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Grant"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RoleInput:
+      type: object
+      required: [name, grants]
+      properties:
+        name:
+          type: string
+        grants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Grant"
+    RolesListResponse:
+      type: object
+      required: [roles]
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Role"
+    MemberSummary:
+      type: object
+      required: [userId, email, name, userStatus, membershipStatus, roleId, roleName]
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        userStatus:
+          type: string
+          enum: [active, disabled]
+        membershipStatus:
+          type: string
+          enum: [active, suspended]
+        roleId:
+          type: string
+        roleName:
+          type: string
+    MembersListResponse:
+      type: object
+      required: [members]
+      properties:
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberSummary"
+    UpdateMemberRoleRequest:
+      type: object
+      required: [roleId]
+      properties:
+        roleId:
+          type: string
+    CreateInvitationRequest:
+      type: object
+      required: [email, name, roleId]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        roleId:
+          type: string
+    CreatedInvitation:
+      type: object
+      required: [id, email, name, roleId, expiresAt, token]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        roleId:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        token:
           type: string

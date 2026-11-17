@@ -10,14 +10,19 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 )
 
 // Config holds the settings shared by the API and the worker.
 type Config struct {
-	Env      string     // "development", "test" or "production"
-	HTTPAddr string     // address the API listens on, for example ":8080"
-	MongoURI string     // MongoDB connection string, must point to a replica set
-	LogLevel slog.Level // minimum level that gets logged
+	Env                   string     // "development", "test" or "production"
+	HTTPAddr              string     // address the API listens on, for example ":8080"
+	MongoURI              string     // MongoDB connection string, must point to a replica set
+	LogLevel              slog.Level // minimum level that gets logged
+	WebAuthnRPID          string     // relying party ID for passkeys (e.g. "localhost")
+	WebAuthnRPDisplayName string     // human-readable relying party name
+	WebAuthnRPOrigins     []string   // allowed WebAuthn origins
+	CORSAllowedOrigins    []string   // allowed browser origins for cookie-authenticated API calls
 }
 
 // IsProduction reports whether the process runs in production.
@@ -30,9 +35,13 @@ func (c Config) IsProduction() bool { return c.Env == "production" }
 // callers never see a half-valid configuration.
 func Load(getenv func(string) string) (Config, error) {
 	cfg := Config{
-		Env:      orDefault(getenv("APP_ENV"), "development"),
-		HTTPAddr: orDefault(getenv("HTTP_ADDR"), ":8080"),
-		MongoURI: getenv("MONGO_URI"),
+		Env:                   orDefault(getenv("APP_ENV"), "development"),
+		HTTPAddr:              orDefault(getenv("HTTP_ADDR"), ":8080"),
+		MongoURI:              getenv("MONGO_URI"),
+		WebAuthnRPID:          orDefault(getenv("WEBAUTHN_RP_ID"), "localhost"),
+		WebAuthnRPDisplayName: orDefault(getenv("WEBAUTHN_RP_DISPLAY_NAME"), "Agenda Clínicas"),
+		WebAuthnRPOrigins:     splitCSVOrDefault(getenv("WEBAUTHN_RP_ORIGINS"), []string{"http://localhost:3000"}),
+		CORSAllowedOrigins:    splitCSVOrDefault(getenv("CORS_ALLOWED_ORIGINS"), []string{"http://localhost:3000"}),
 	}
 	switch cfg.Env {
 	case "development", "test", "production":
@@ -54,4 +63,21 @@ func orDefault(v, def string) string {
 		return def
 	}
 	return v
+}
+
+func splitCSVOrDefault(raw string, def []string) []string {
+	if strings.TrimSpace(raw) == "" {
+		return def
+	}
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
+			out = append(out, trimmed)
+		}
+	}
+	if len(out) == 0 {
+		return def
+	}
+	return out
 }
