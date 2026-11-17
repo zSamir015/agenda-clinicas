@@ -327,8 +327,13 @@ func (r *Repository) AcceptInvitation(ctx context.Context, rawToken string, auth
 	if err != nil {
 		return User{}, Membership{}, err
 	}
-	if u, uErr := r.UserByEmail(ctx, existing.Email); uErr == nil && u.ID != authenticatedUserID {
-		return User{}, Membership{}, ErrExistingAccount
+	if u, uErr := r.UserByEmail(ctx, existing.Email); uErr == nil {
+		if u.ID != authenticatedUserID {
+			return User{}, Membership{}, ErrExistingAccount
+		}
+		if u.Status != UserActive {
+			return User{}, Membership{}, fmt.Errorf("%w: account is disabled", ErrInvalidUser)
+		}
 	} else if uErr != nil && !errors.Is(uErr, ErrUserNotFound) {
 		return User{}, Membership{}, uErr
 	}
@@ -360,9 +365,14 @@ func (r *Repository) AcceptInvitation(ctx context.Context, rawToken string, auth
 	if err != nil {
 		return User{}, Membership{}, err
 	}
-	// An account appeared between the pre-check and consumption: still no proof.
+	// An account appeared between the pre-check and consumption: roll back usedAt so the invite is not burned.
 	if !created && u.ID != authenticatedUserID {
+		_, _ = r.invitations.UpdateOne(ctx, bson.D{{Key: "_id", Value: consumed.ID}}, bson.D{{Key: "$unset", Value: bson.D{{Key: "usedAt", Value: ""}}}})
 		return User{}, Membership{}, ErrExistingAccount
+	}
+	if u.Status != UserActive {
+		_, _ = r.invitations.UpdateOne(ctx, bson.D{{Key: "_id", Value: consumed.ID}}, bson.D{{Key: "$unset", Value: bson.D{{Key: "usedAt", Value: ""}}}})
+		return User{}, Membership{}, fmt.Errorf("%w: account is disabled", ErrInvalidUser)
 	}
 
 	m, err := r.AddMembership(ctx, u.ID, consumed.ClinicID, consumed.RoleID)

@@ -405,6 +405,8 @@ func (s *Server) PostAuthInvitationAccept(ctx context.Context, req PostAuthInvit
 	switch {
 	case errors.Is(err, users.ErrExistingAccount):
 		return PostAuthInvitationAccept409ApplicationProblemPlusJSONResponse{conflict("login_required", "Ya tienes una cuenta", "Inicia sesión con esa cuenta y acepta la invitación desde ahí.")}, nil
+	case errors.Is(err, users.ErrInvalidUser):
+		return PostAuthInvitationAccept400ApplicationProblemPlusJSONResponse{badRequest("user_disabled", "Cuenta deshabilitada", "Contacta al administrador de tu clínica.")}, nil
 	case errors.Is(err, users.ErrInvitationInvalid):
 		return PostAuthInvitationAccept404ApplicationProblemPlusJSONResponse{notFound("invitation_not_found", "Invitación no encontrada", "")}, nil
 	case errors.Is(err, users.ErrInvitationExpired), errors.Is(err, users.ErrInvitationUsed):
@@ -518,6 +520,11 @@ func (s *Server) PostAuthTotpSetup(ctx context.Context, _ PostAuthTotpSetupReque
 	sess, err := s.requireStaff(ctx)
 	if err != nil {
 		return PostAuthTotpSetup403ApplicationProblemPlusJSONResponse{forbidden("forbidden", "Acceso restringido", "")}, nil
+	}
+	if s.auth.Creds != nil {
+		if existing, credErr := s.auth.Creds.ByUserID(ctx, sess.UserID); credErr == nil && (existing.TOTPEnabled || existing.PasswordHash != "") {
+			return PostAuthTotpSetup403ApplicationProblemPlusJSONResponse{forbidden("credentials_exist", "Las credenciales ya están configuradas", "No se pueden reemplazar desde una sesión activa.")}, nil
+		}
 	}
 	user, err := s.auth.Users.UserByID(ctx, sess.UserID)
 	if err != nil {

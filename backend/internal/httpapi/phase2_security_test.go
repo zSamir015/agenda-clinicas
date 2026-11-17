@@ -147,6 +147,14 @@ func TestInvitationAcceptDoesNotGrantSessionOnExistingAccount(t *testing.T) {
 	must(t, err)
 	victimActor := actor{userID: victim.ID.Hex(), cookie: &http.Cookie{Name: auth.DefaultCookieName, Value: raw}, //nolint:gosec // test-only request cookie
 		csrf: sess.CSRFToken}
+
+	// Valid cookie with bad CSRF on /auth/invitations/accept must return 403 invalid_csrf (not silently downgrade to 409).
+	rec = doJSON(t, e.h, http.MethodPost, "/auth/invitations/accept", map[string]string{"token": token}, victimActor.cookie, "wrong-csrf")
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("bad csrf on invitation accept: got %d, want 403 (%s)", rec.Code, rec.Body.String())
+	}
+
+	// The real owner of the account, logged in, can accept it.
 	rec = e.do(t, victimActor, http.MethodPost, "/auth/invitations/accept", map[string]string{"token": token})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("accept as the account owner: %d %s", rec.Code, rec.Body.String())
@@ -205,6 +213,12 @@ func TestTOTPConfirmCannotReplaceExistingCredentials(t *testing.T) {
 	}
 	if _, err := e.sessions.Validate(context.Background(), owner.cookie.Value); err != nil {
 		t.Fatalf("enrolling credentials revoked the current session: %v", err)
+	}
+
+	// Setup and confirm must both refuse replacing established credentials.
+	setupRec := e.do(t, owner, http.MethodPost, "/auth/totp/setup", nil)
+	if setupRec.Code != http.StatusForbidden {
+		t.Fatalf("totp setup when enrolled: got %d, want 403 (%s)", setupRec.Code, setupRec.Body.String())
 	}
 
 	// A session alone must not overwrite the established password and TOTP.
