@@ -1,7 +1,20 @@
 import createClient from "openapi-fetch";
-import type { paths } from "./schema";
+import type { components, paths } from "./schema";
 
 export type ApiClient = ReturnType<typeof createClient<paths>>;
+export type Problem = components["schemas"]["Problem"];
+export type SessionInfo = components["schemas"]["Session"];
+export type RoleDTO = components["schemas"]["Role"];
+export type GrantDTO = components["schemas"]["Grant"];
+export type PermissionDTO = components["schemas"]["Permission"];
+export type ScopeDTO = components["schemas"]["Scope"];
+export type MemberSummaryDTO = components["schemas"]["MemberSummary"];
+export type SecurityStatusDTO = components["schemas"]["SecurityStatus"];
+export type InvitationPreviewDTO = components["schemas"]["InvitationPreview"];
+
+export function getBrowserApiUrl(): string {
+  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+}
 
 export function createApiClient(
   baseUrl: string,
@@ -13,16 +26,37 @@ export function createApiClient(
   });
 }
 
+export function createBrowserApiClient(
+  baseUrl = getBrowserApiUrl(),
+  fetchImpl?: typeof fetch,
+): ApiClient {
+  const boundFetch: typeof fetch = (input, init) => {
+    const caller = fetchImpl ?? globalThis.fetch;
+    return caller(input, { credentials: "include", ...init });
+  };
+  return createClient<paths>({
+    baseUrl,
+    fetch: boundFetch,
+  });
+}
+
+export function problemMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === "object") {
+    const maybe = error as Partial<Problem>;
+    if (typeof maybe.detail === "string" && maybe.detail.trim() !== "") {
+      return maybe.detail;
+    }
+    if (typeof maybe.title === "string" && maybe.title.trim() !== "") {
+      return maybe.title;
+    }
+  }
+  return fallback;
+}
+
 /**
  * Consulta GET /readyz usando el cliente tipado y devuelve "ok" si la API
  * responde 200 con `{ status: "ok" }`, o "unavailable" ante cualquier error
  * HTTP (por ejemplo 503) o fallo de red.
- *
- * Pistas:
- * - Usa `client.GET("/readyz", { cache: "no-store" })` para no cachear el estado en Next.js.
- * - `openapi-fetch` devuelve `{ data, error }` sin lanzar excepción en respuestas 4xx/5xx,
- *   pero sí puede lanzar si falla la red (`fetch` rechaza la promesa).
- * - Envuelve la llamada en `try / catch` y verifica `data?.status === "ok"`.
  */
 export async function fetchHealth(
   client: ApiClient,
