@@ -403,6 +403,209 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/schedule/practitioners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista los médicos o profesionales de la clínica actual. */
+        get: operations["getSchedulePractitioners"];
+        put?: never;
+        /** Crea un profesional en el catálogo de la clínica. */
+        post: operations["postSchedulePractitioners"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/practitioners/{practitionerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                practitionerId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Actualiza los datos de un profesional. */
+        put: operations["putSchedulePractitioner"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista los consultorios de la clínica actual. */
+        get: operations["getScheduleRooms"];
+        put?: never;
+        /** Crea un consultorio en la clínica actual. */
+        post: operations["postScheduleRooms"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/rooms/{roomId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Actualiza un consultorio existente. */
+        put: operations["putScheduleRoom"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista los servicios configurados en la clínica actual. */
+        get: operations["getScheduleServices"];
+        put?: never;
+        /** Crea un servicio en la clínica actual. */
+        post: operations["postScheduleServices"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/services/{serviceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Actualiza un servicio existente. */
+        put: operations["putScheduleService"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista las reglas semanales de disponibilidad de la clínica. */
+        get: operations["getScheduleRules"];
+        put?: never;
+        /** Crea una regla semanal de disponibilidad. */
+        post: operations["postScheduleRules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/rules/{ruleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Actualiza una regla semanal de disponibilidad. */
+        put: operations["putScheduleRule"];
+        post?: never;
+        /** Elimina una regla semanal de disponibilidad. */
+        delete: operations["deleteScheduleRule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista bloqueos de agenda en un rango de fechas. */
+        get: operations["getScheduleBlocks"];
+        put?: never;
+        /** Crea un bloqueo puntual para la clínica, un profesional o un consultorio. */
+        post: operations["postScheduleBlocks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/blocks/{blockId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                blockId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Elimina un bloqueo puntual. */
+        delete: operations["deleteScheduleBlock"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedule/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calcula los espacios disponibles para reservar un servicio en un rango de fechas. */
+        get: operations["getScheduleAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -570,6 +773,157 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
             token: string;
+        };
+        Practitioner: {
+            id: string;
+            userId?: string;
+            name: string;
+            specialty: string;
+            serviceIds: string[];
+            active: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PractitionerInput: {
+            userId?: string;
+            name: string;
+            specialty: string;
+            serviceIds: string[];
+            active: boolean;
+        };
+        PractitionersListResponse: {
+            practitioners: components["schemas"]["Practitioner"][];
+        };
+        Room: {
+            id: string;
+            name: string;
+            roomType: string;
+            active: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        RoomInput: {
+            name: string;
+            roomType: string;
+            active: boolean;
+        };
+        RoomsListResponse: {
+            rooms: components["schemas"]["Room"][];
+        };
+        /** @enum {string} */
+        PaymentMode: "none" | "deposit" | "full";
+        Service: {
+            id: string;
+            name: string;
+            durationMinutes: number;
+            bufferMinutes: number;
+            roomType: string;
+            paymentMode: components["schemas"]["PaymentMode"];
+            /** Format: int64 */
+            priceCents: number;
+            /** Format: int64 */
+            depositCents: number;
+            depositPercent: number;
+            active: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ServiceInput: {
+            name: string;
+            durationMinutes: number;
+            bufferMinutes: number;
+            roomType: string;
+            paymentMode: components["schemas"]["PaymentMode"];
+            /** Format: int64 */
+            priceCents: number;
+            /** Format: int64 */
+            depositCents: number;
+            depositPercent: number;
+            active: boolean;
+        };
+        ServicesListResponse: {
+            services: components["schemas"]["Service"][];
+        };
+        AvailabilityRule: {
+            id: string;
+            practitionerId: string;
+            roomId: string;
+            weekday: number;
+            startMinute: number;
+            endMinute: number;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validUntil?: string;
+            active: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AvailabilityRuleInput: {
+            practitionerId: string;
+            roomId: string;
+            weekday: number;
+            startMinute: number;
+            endMinute: number;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validUntil?: string;
+            active: boolean;
+        };
+        RulesListResponse: {
+            rules: components["schemas"]["AvailabilityRule"][];
+        };
+        /** @enum {string} */
+        BlockScope: "clinic" | "practitioner" | "room";
+        /** @enum {string} */
+        BlockSource: "manual" | "holiday";
+        Block: {
+            id: string;
+            scope: components["schemas"]["BlockScope"];
+            practitionerId?: string;
+            roomId?: string;
+            reason: string;
+            source: components["schemas"]["BlockSource"];
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        BlockInput: {
+            scope: components["schemas"]["BlockScope"];
+            practitionerId?: string;
+            roomId?: string;
+            reason: string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+        };
+        BlocksListResponse: {
+            blocks: components["schemas"]["Block"][];
+        };
+        AvailableSlot: {
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            practitionerId: string;
+            roomId: string;
+            roomName: string;
+        };
+        AvailabilityResponse: {
+            slots: components["schemas"]["AvailableSlot"][];
         };
     };
     responses: {
@@ -1285,6 +1639,468 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+        };
+    };
+    getSchedulePractitioners: {
+        parameters: {
+            query?: {
+                activeOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista de profesionales. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PractitionersListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    postSchedulePractitioners: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PractitionerInput"];
+            };
+        };
+        responses: {
+            /** @description Profesional creado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Practitioner"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putSchedulePractitioner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                practitionerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PractitionerInput"];
+            };
+        };
+        responses: {
+            /** @description Profesional actualizado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Practitioner"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getScheduleRooms: {
+        parameters: {
+            query?: {
+                activeOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista de consultorios. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomsListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    postScheduleRooms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoomInput"];
+            };
+        };
+        responses: {
+            /** @description Consultorio creado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Room"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    putScheduleRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoomInput"];
+            };
+        };
+        responses: {
+            /** @description Consultorio actualizado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Room"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getScheduleServices: {
+        parameters: {
+            query?: {
+                activeOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista de servicios. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServicesListResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    postScheduleServices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceInput"];
+            };
+        };
+        responses: {
+            /** @description Servicio creado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    putScheduleService: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                serviceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceInput"];
+            };
+        };
+        responses: {
+            /** @description Servicio actualizado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getScheduleRules: {
+        parameters: {
+            query?: {
+                practitionerId?: string;
+                roomId?: string;
+                activeOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista de reglas de disponibilidad. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RulesListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    postScheduleRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvailabilityRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Regla creada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityRule"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    putScheduleRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvailabilityRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Regla actualizada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityRule"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deleteScheduleRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regla eliminada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getScheduleBlocks: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista de bloqueos. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlocksListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    postScheduleBlocks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BlockInput"];
+            };
+        };
+        responses: {
+            /** @description Bloqueo creado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Block"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    deleteScheduleBlock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                blockId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bloqueo eliminado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getScheduleAvailability: {
+        parameters: {
+            query: {
+                serviceId: string;
+                from: string;
+                to: string;
+                practitionerId?: string;
+                stepMinutes?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Espacios disponibles ordenados cronológicamente. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
 }

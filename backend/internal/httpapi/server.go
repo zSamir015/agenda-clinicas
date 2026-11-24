@@ -19,6 +19,7 @@ import (
 	"github.com/zSamir015/agenda-clinicas/backend/internal/auth"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/platform"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/rbac"
+	"github.com/zSamir015/agenda-clinicas/backend/internal/schedule"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/users"
 )
 
@@ -104,10 +105,29 @@ func WithAuth(deps AuthDeps) Option {
 	}
 }
 
+// ScheduleDeps bundles the dependencies needed for catalog, rules, blocks, and availability endpoints.
+type ScheduleDeps struct {
+	Catalog       *schedule.CatalogService
+	Rules         *schedule.RuleService
+	Practitioners *schedule.PractitionerRepository
+	Rooms         *schedule.RoomRepository
+	Services      *schedule.ServiceRepository
+	RuleRepo      *schedule.RuleRepository
+	Blocks        *schedule.BlockRepository
+}
+
+// WithSchedule wires catalog, schedule, and availability dependencies.
+func WithSchedule(deps ScheduleDeps) Option {
+	return func(s *Server) {
+		s.schedule = deps
+	}
+}
+
 // Server implements StrictServerInterface.
 type Server struct {
 	db         Pinger
 	auth       AuthDeps
+	schedule   ScheduleDeps
 	challenges *challengeStore
 }
 
@@ -160,7 +180,7 @@ func NewHandler(s *Server) http.Handler {
 			optionalSession(otpLimited).ServeHTTP(w, r)
 		case path == "/auth/patient/otp/send" || path == "/auth/patient/otp/verify":
 			otpLimited.ServeHTTP(w, r)
-		case strings.HasPrefix(path, "/auth/") || strings.HasPrefix(path, "/rbac/") || strings.HasPrefix(path, "/users/"):
+		case strings.HasPrefix(path, "/auth/") || strings.HasPrefix(path, "/rbac/") || strings.HasPrefix(path, "/users/") || strings.HasPrefix(path, "/schedule/"):
 			protected.ServeHTTP(w, r)
 		default:
 			base.ServeHTTP(w, r)

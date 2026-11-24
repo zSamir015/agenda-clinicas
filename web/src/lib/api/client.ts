@@ -11,6 +11,14 @@ export type ScopeDTO = components["schemas"]["Scope"];
 export type MemberSummaryDTO = components["schemas"]["MemberSummary"];
 export type SecurityStatusDTO = components["schemas"]["SecurityStatus"];
 export type InvitationPreviewDTO = components["schemas"]["InvitationPreview"];
+export type PractitionerDTO = components["schemas"]["Practitioner"];
+export type RoomDTO = components["schemas"]["Room"];
+export type ServiceDTO = components["schemas"]["Service"];
+export type PaymentModeDTO = components["schemas"]["PaymentMode"];
+export type AvailabilityRuleDTO = components["schemas"]["AvailabilityRule"];
+export type BlockDTO = components["schemas"]["Block"];
+export type BlockScopeDTO = components["schemas"]["BlockScope"];
+export type AvailableSlotDTO = components["schemas"]["AvailableSlot"];
 
 export function getBrowserApiUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
