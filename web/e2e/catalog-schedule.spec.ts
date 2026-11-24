@@ -120,10 +120,18 @@ test.describe("Catálogo, horarios y disponibilidad con WCAG 2.2 AA", () => {
     // Consultar disponibilidad para el lunes 2026-12-14.
     await page.getByLabel("Fecha (Panamá)").fill("2026-12-14");
     await page.getByRole("button", { name: "Consultar horarios" }).click();
-    await expect(page.getByText(/09:00.*Consultorio 1/)).toBeVisible();
-    await expect(page.getByText(/09:30.*Consultorio 1/)).toBeVisible();
-    await expect(page.getByText(/10:00.*Consultorio 1/)).toBeVisible();
-    await expect(page.getByText(/10:30.*Consultorio 1/)).toBeVisible();
+    await expect(
+      page.locator("li", { hasText: /^09:00 · .*Consultorio 1$/ }),
+    ).toBeVisible();
+    await expect(
+      page.locator("li", { hasText: /^09:30 · .*Consultorio 1$/ }),
+    ).toBeVisible();
+    await expect(
+      page.locator("li", { hasText: /^10:00 · .*Consultorio 1$/ }),
+    ).toBeVisible();
+    await expect(
+      page.locator("li", { hasText: /^10:30 · .*Consultorio 1$/ }),
+    ).toBeVisible();
 
     // Agregar bloqueo 09:30–10:00 y verificar que el espacio 09:30 desaparece.
     await page.getByLabel("Motivo").fill("Reunión clínica");
@@ -133,8 +141,14 @@ test.describe("Catálogo, horarios y disponibilidad con WCAG 2.2 AA", () => {
     await expect(page.getByText("Bloqueo registrado.")).toBeVisible();
 
     await page.getByRole("button", { name: "Consultar horarios" }).click();
-    await expect(page.getByText(/09:00.*Consultorio 1/)).toBeVisible();
-    await expect(page.getByText(/09:30.*Consultorio 1/)).toHaveCount(0);
-    await expect(page.getByText(/10:00.*Consultorio 1/)).toBeVisible();
+    await expect(
+      page.locator("li", { hasText: /^09:00 · .*Consultorio 1$/ }),
+    ).toBeVisible();
+    await expect(
+      page.locator("li", { hasText: /^09:30 · .*Consultorio 1$/ }),
+    ).toHaveCount(0);
+    await expect(
+      page.locator("li", { hasText: /^10:00 · .*Consultorio 1$/ }),
+    ).toBeVisible();
   });
 });
