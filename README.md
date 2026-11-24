@@ -2,7 +2,7 @@
 
 Plataforma SaaS de agenda para clínicas y consultorios en Panamá: reserva en línea sin citas dobles, depósitos con Stripe, recordatorios por correo y WhatsApp, y datos de pacientes cifrados con una llave por clínica.
 
-Estado: diseño. Todavía no hay código.
+Estado: en desarrollo. Fases 0 a 2 terminadas (fundaciones, registro de clínicas con cifrado por clínica, autenticación y roles). Fase 3 (catálogo y horarios) en curso; el avance de cada fase está en los milestones del repo.
 
 - Diseño: [docs/design.md](docs/design.md)
 - Hoja de ruta y estimaciones: [docs/roadmap.md](docs/roadmap.md)
