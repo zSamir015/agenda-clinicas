@@ -21,6 +21,7 @@ import (
 	"github.com/zSamir015/agenda-clinicas/backend/internal/mongodb"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/platform"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/rbac"
+	"github.com/zSamir015/agenda-clinicas/backend/internal/schedule"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/users"
 )
 
@@ -57,9 +58,11 @@ func run() error {
 		return err
 	}
 
+	scheduleDeps := initScheduleDeps(db)
+
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           httpapi.NewHandler(httpapi.NewServer(db, httpapi.WithAuth(authDeps))),
+		Handler:           httpapi.NewHandler(httpapi.NewServer(db, httpapi.WithAuth(authDeps), httpapi.WithSchedule(scheduleDeps))),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,
@@ -132,4 +135,23 @@ func initAuthDeps(ctx context.Context, cfg config.Config, db *mongodb.Client) (h
 		CookieSecure:   cfg.IsProduction(),
 		AllowedOrigins: cfg.CORSAllowedOrigins,
 	}, nil
+}
+
+func initScheduleDeps(db *mongodb.Client) httpapi.ScheduleDeps {
+	const sharedDB = "operations"
+	mongoClient := db.Mongo()
+	practitioners := schedule.NewPractitionerRepository(mongoClient, sharedDB)
+	rooms := schedule.NewRoomRepository(mongoClient, sharedDB)
+	services := schedule.NewServiceRepository(mongoClient, sharedDB)
+	ruleRepo := schedule.NewRuleRepository(mongoClient, sharedDB)
+	blocks := schedule.NewBlockRepository(mongoClient, sharedDB)
+	return httpapi.ScheduleDeps{
+		Catalog:       schedule.NewCatalogService(practitioners, rooms, services),
+		Rules:         schedule.NewRuleService(ruleRepo, blocks),
+		Practitioners: practitioners,
+		Rooms:         rooms,
+		Services:      services,
+		RuleRepo:      ruleRepo,
+		Blocks:        blocks,
+	}
 }

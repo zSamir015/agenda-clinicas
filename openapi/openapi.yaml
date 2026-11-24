@@ -536,6 +536,456 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+  /schedule/practitioners:
+    get:
+      operationId: getSchedulePractitioners
+      summary: Lista los médicos o profesionales de la clínica actual.
+      parameters:
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Lista de profesionales.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PractitionersListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: postSchedulePractitioners
+      summary: Crea un profesional en el catálogo de la clínica.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PractitionerInput"
+      responses:
+        "201":
+          description: Profesional creado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Practitioner"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /schedule/practitioners/{practitionerId}:
+    parameters:
+      - name: practitionerId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: putSchedulePractitioner
+      summary: Actualiza los datos de un profesional.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PractitionerInput"
+      responses:
+        "200":
+          description: Profesional actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Practitioner"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /schedule/rooms:
+    get:
+      operationId: getScheduleRooms
+      summary: Lista los consultorios de la clínica actual.
+      parameters:
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Lista de consultorios.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomsListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: postScheduleRooms
+      summary: Crea un consultorio en la clínica actual.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomInput"
+      responses:
+        "201":
+          description: Consultorio creado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /schedule/rooms/{roomId}:
+    parameters:
+      - name: roomId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: putScheduleRoom
+      summary: Actualiza un consultorio existente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomInput"
+      responses:
+        "200":
+          description: Consultorio actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /schedule/services:
+    get:
+      operationId: getScheduleServices
+      summary: Lista los servicios configurados en la clínica actual.
+      parameters:
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Lista de servicios.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicesListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: postScheduleServices
+      summary: Crea un servicio en la clínica actual.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "201":
+          description: Servicio creado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /schedule/services/{serviceId}:
+    parameters:
+      - name: serviceId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: putScheduleService
+      summary: Actualiza un servicio existente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "200":
+          description: Servicio actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /schedule/rules:
+    get:
+      operationId: getScheduleRules
+      summary: Lista las reglas semanales de disponibilidad de la clínica.
+      parameters:
+        - name: practitionerId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: roomId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Lista de reglas de disponibilidad.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RulesListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: postScheduleRules
+      summary: Crea una regla semanal de disponibilidad.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailabilityRuleInput"
+      responses:
+        "201":
+          description: Regla creada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityRule"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /schedule/rules/{ruleId}:
+    parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: putScheduleRule
+      summary: Actualiza una regla semanal de disponibilidad.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailabilityRuleInput"
+      responses:
+        "200":
+          description: Regla actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityRule"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteScheduleRule
+      summary: Elimina una regla semanal de disponibilidad.
+      responses:
+        "204":
+          description: Regla eliminada.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /schedule/blocks:
+    get:
+      operationId: getScheduleBlocks
+      summary: Lista bloqueos de agenda en un rango de fechas.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Lista de bloqueos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: postScheduleBlocks
+      summary: Crea un bloqueo puntual para la clínica, un profesional o un consultorio.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockInput"
+      responses:
+        "201":
+          description: Bloqueo creado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Block"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /schedule/blocks/{blockId}:
+    parameters:
+      - name: blockId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      operationId: deleteScheduleBlock
+      summary: Elimina un bloqueo puntual.
+      responses:
+        "204":
+          description: Bloqueo eliminado.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /schedule/availability:
+    get:
+      operationId: getScheduleAvailability
+      summary: Calcula los espacios disponibles para reservar un servicio en un rango de fechas.
+      parameters:
+        - name: serviceId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: practitionerId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: stepMinutes
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Espacios disponibles ordenados cronológicamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 components:
   responses:
     BadRequest:
@@ -920,3 +1370,316 @@ components:
           format: date-time
         token:
           type: string
+    Practitioner:
+      type: object
+      required: [id, name, specialty, serviceIds, active, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        specialty:
+          type: string
+        serviceIds:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PractitionerInput:
+      type: object
+      required: [name, specialty, serviceIds, active]
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+        specialty:
+          type: string
+        serviceIds:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+    PractitionersListResponse:
+      type: object
+      required: [practitioners]
+      properties:
+        practitioners:
+          type: array
+          items:
+            $ref: "#/components/schemas/Practitioner"
+    Room:
+      type: object
+      required: [id, name, roomType, active, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        roomType:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RoomInput:
+      type: object
+      required: [name, roomType, active]
+      properties:
+        name:
+          type: string
+        roomType:
+          type: string
+        active:
+          type: boolean
+    RoomsListResponse:
+      type: object
+      required: [rooms]
+      properties:
+        rooms:
+          type: array
+          items:
+            $ref: "#/components/schemas/Room"
+    PaymentMode:
+      type: string
+      enum: [none, deposit, full]
+    Service:
+      type: object
+      required:
+        - id
+        - name
+        - durationMinutes
+        - bufferMinutes
+        - roomType
+        - paymentMode
+        - priceCents
+        - depositCents
+        - depositPercent
+        - active
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        durationMinutes:
+          type: integer
+        bufferMinutes:
+          type: integer
+        roomType:
+          type: string
+        paymentMode:
+          $ref: "#/components/schemas/PaymentMode"
+        priceCents:
+          type: integer
+          format: int64
+        depositCents:
+          type: integer
+          format: int64
+        depositPercent:
+          type: integer
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ServiceInput:
+      type: object
+      required:
+        - name
+        - durationMinutes
+        - bufferMinutes
+        - roomType
+        - paymentMode
+        - priceCents
+        - depositCents
+        - depositPercent
+        - active
+      properties:
+        name:
+          type: string
+        durationMinutes:
+          type: integer
+        bufferMinutes:
+          type: integer
+        roomType:
+          type: string
+        paymentMode:
+          $ref: "#/components/schemas/PaymentMode"
+        priceCents:
+          type: integer
+          format: int64
+        depositCents:
+          type: integer
+          format: int64
+        depositPercent:
+          type: integer
+        active:
+          type: boolean
+    ServicesListResponse:
+      type: object
+      required: [services]
+      properties:
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/Service"
+    AvailabilityRule:
+      type: object
+      required: [id, practitionerId, roomId, weekday, startMinute, endMinute, active, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        practitionerId:
+          type: string
+        roomId:
+          type: string
+        weekday:
+          type: integer
+        startMinute:
+          type: integer
+        endMinute:
+          type: integer
+        validFrom:
+          type: string
+          format: date-time
+        validUntil:
+          type: string
+          format: date-time
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AvailabilityRuleInput:
+      type: object
+      required: [practitionerId, roomId, weekday, startMinute, endMinute, active]
+      properties:
+        practitionerId:
+          type: string
+        roomId:
+          type: string
+        weekday:
+          type: integer
+        startMinute:
+          type: integer
+        endMinute:
+          type: integer
+        validFrom:
+          type: string
+          format: date-time
+        validUntil:
+          type: string
+          format: date-time
+        active:
+          type: boolean
+    RulesListResponse:
+      type: object
+      required: [rules]
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/AvailabilityRule"
+    BlockScope:
+      type: string
+      enum: [clinic, practitioner, room]
+    BlockSource:
+      type: string
+      enum: [manual, holiday]
+    Block:
+      type: object
+      required: [id, scope, reason, source, startAt, endAt, createdAt]
+      properties:
+        id:
+          type: string
+        scope:
+          $ref: "#/components/schemas/BlockScope"
+        practitionerId:
+          type: string
+        roomId:
+          type: string
+        reason:
+          type: string
+        source:
+          $ref: "#/components/schemas/BlockSource"
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    BlockInput:
+      type: object
+      required: [scope, reason, startAt, endAt]
+      properties:
+        scope:
+          $ref: "#/components/schemas/BlockScope"
+        practitionerId:
+          type: string
+        roomId:
+          type: string
+        reason:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+    BlocksListResponse:
+      type: object
+      required: [blocks]
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Block"
+    AvailableSlot:
+      type: object
+      required: [startAt, endAt, practitionerId, roomId, roomName]
+      properties:
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        practitionerId:
+          type: string
+        roomId:
+          type: string
+        roomName:
+          type: string
+    AvailabilityResponse:
+      type: object
+      required: [slots]
+      properties:
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/AvailableSlot"
