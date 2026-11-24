@@ -55,6 +55,18 @@ export function AppShell({
               className="flex flex-wrap items-center gap-2 text-[length:var(--text-sm)]"
             >
               <Link
+                href="/panel/catalogo"
+                className="rounded-[var(--radius-md)] px-3 py-2 font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
+              >
+                Catálogo
+              </Link>
+              <Link
+                href="/panel/horarios"
+                className="rounded-[var(--radius-md)] px-3 py-2 font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
+              >
+                Horarios
+              </Link>
+              <Link
                 href="/panel/seguridad"
                 className="rounded-[var(--radius-md)] px-3 py-2 font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
               >

@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -16,6 +17,45 @@ import (
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// Defines values for BlockScope.
+const (
+	BlockScopeClinic       BlockScope = "clinic"
+	BlockScopePractitioner BlockScope = "practitioner"
+	BlockScopeRoom         BlockScope = "room"
+)
+
+// Valid indicates whether the value is a known member of the BlockScope enum.
+func (e BlockScope) Valid() bool {
+	switch e {
+	case BlockScopeClinic:
+		return true
+	case BlockScopePractitioner:
+		return true
+	case BlockScopeRoom:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for BlockSource.
+const (
+	Holiday BlockSource = "holiday"
+	Manual  BlockSource = "manual"
+)
+
+// Valid indicates whether the value is a known member of the BlockSource enum.
+func (e BlockSource) Valid() bool {
+	switch e {
+	case Holiday:
+		return true
+	case Manual:
+		return true
+	default:
+		return false
+	}
+}
 
 // Defines values for HealthStatus.
 const (
@@ -62,6 +102,27 @@ func (e MemberSummaryUserStatus) Valid() bool {
 	case MemberSummaryUserStatusActive:
 		return true
 	case MemberSummaryUserStatusDisabled:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PaymentMode.
+const (
+	Deposit PaymentMode = "deposit"
+	Full    PaymentMode = "full"
+	None    PaymentMode = "none"
+)
+
+// Valid indicates whether the value is a known member of the PaymentMode enum.
+func (e PaymentMode) Valid() bool {
+	switch e {
+	case Deposit:
+		return true
+	case Full:
+		return true
+	case None:
 		return true
 	default:
 		return false
@@ -150,6 +211,81 @@ func (e SessionKind) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// AvailabilityResponse defines model for AvailabilityResponse.
+type AvailabilityResponse struct {
+	Slots []AvailableSlot `json:"slots"`
+}
+
+// AvailabilityRule defines model for AvailabilityRule.
+type AvailabilityRule struct {
+	Active         bool       `json:"active"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	EndMinute      int        `json:"endMinute"`
+	Id             string     `json:"id"`
+	PractitionerId string     `json:"practitionerId"`
+	RoomId         string     `json:"roomId"`
+	StartMinute    int        `json:"startMinute"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
+	ValidFrom      *time.Time `json:"validFrom,omitempty"`
+	ValidUntil     *time.Time `json:"validUntil,omitempty"`
+	Weekday        int        `json:"weekday"`
+}
+
+// AvailabilityRuleInput defines model for AvailabilityRuleInput.
+type AvailabilityRuleInput struct {
+	Active         bool       `json:"active"`
+	EndMinute      int        `json:"endMinute"`
+	PractitionerId string     `json:"practitionerId"`
+	RoomId         string     `json:"roomId"`
+	StartMinute    int        `json:"startMinute"`
+	ValidFrom      *time.Time `json:"validFrom,omitempty"`
+	ValidUntil     *time.Time `json:"validUntil,omitempty"`
+	Weekday        int        `json:"weekday"`
+}
+
+// AvailableSlot defines model for AvailableSlot.
+type AvailableSlot struct {
+	EndAt          time.Time `json:"endAt"`
+	PractitionerId string    `json:"practitionerId"`
+	RoomId         string    `json:"roomId"`
+	RoomName       string    `json:"roomName"`
+	StartAt        time.Time `json:"startAt"`
+}
+
+// Block defines model for Block.
+type Block struct {
+	CreatedAt      time.Time   `json:"createdAt"`
+	EndAt          time.Time   `json:"endAt"`
+	Id             string      `json:"id"`
+	PractitionerId *string     `json:"practitionerId,omitempty"`
+	Reason         string      `json:"reason"`
+	RoomId         *string     `json:"roomId,omitempty"`
+	Scope          BlockScope  `json:"scope"`
+	Source         BlockSource `json:"source"`
+	StartAt        time.Time   `json:"startAt"`
+}
+
+// BlockInput defines model for BlockInput.
+type BlockInput struct {
+	EndAt          time.Time  `json:"endAt"`
+	PractitionerId *string    `json:"practitionerId,omitempty"`
+	Reason         string     `json:"reason"`
+	RoomId         *string    `json:"roomId,omitempty"`
+	Scope          BlockScope `json:"scope"`
+	StartAt        time.Time  `json:"startAt"`
+}
+
+// BlockScope defines model for BlockScope.
+type BlockScope string
+
+// BlockSource defines model for BlockSource.
+type BlockSource string
+
+// BlocksListResponse defines model for BlocksListResponse.
+type BlocksListResponse struct {
+	Blocks []Block `json:"blocks"`
 }
 
 // CreateInvitationRequest defines model for CreateInvitationRequest.
@@ -270,6 +406,9 @@ type PatientOtpVerifyRequest struct {
 	Contact    string `json:"contact"`
 }
 
+// PaymentMode defines model for PaymentMode.
+type PaymentMode string
+
 // Permission defines model for Permission.
 type Permission string
 
@@ -277,6 +416,32 @@ type Permission string
 type PermissionCatalog struct {
 	Permissions []Permission `json:"permissions"`
 	Scopes      []Scope      `json:"scopes"`
+}
+
+// Practitioner defines model for Practitioner.
+type Practitioner struct {
+	Active     bool      `json:"active"`
+	CreatedAt  time.Time `json:"createdAt"`
+	Id         string    `json:"id"`
+	Name       string    `json:"name"`
+	ServiceIds []string  `json:"serviceIds"`
+	Specialty  string    `json:"specialty"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	UserId     *string   `json:"userId,omitempty"`
+}
+
+// PractitionerInput defines model for PractitionerInput.
+type PractitionerInput struct {
+	Active     bool     `json:"active"`
+	Name       string   `json:"name"`
+	ServiceIds []string `json:"serviceIds"`
+	Specialty  string   `json:"specialty"`
+	UserId     *string  `json:"userId,omitempty"`
+}
+
+// PractitionersListResponse defines model for PractitionersListResponse.
+type PractitionersListResponse struct {
+	Practitioners []Practitioner `json:"practitioners"`
 }
 
 // Problem Error según RFC 9457, con un código estable.
@@ -311,6 +476,33 @@ type RolesListResponse struct {
 	Roles []Role `json:"roles"`
 }
 
+// Room defines model for Room.
+type Room struct {
+	Active    bool      `json:"active"`
+	CreatedAt time.Time `json:"createdAt"`
+	Id        string    `json:"id"`
+	Name      string    `json:"name"`
+	RoomType  string    `json:"roomType"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// RoomInput defines model for RoomInput.
+type RoomInput struct {
+	Active   bool   `json:"active"`
+	Name     string `json:"name"`
+	RoomType string `json:"roomType"`
+}
+
+// RoomsListResponse defines model for RoomsListResponse.
+type RoomsListResponse struct {
+	Rooms []Room `json:"rooms"`
+}
+
+// RulesListResponse defines model for RulesListResponse.
+type RulesListResponse struct {
+	Rules []AvailabilityRule `json:"rules"`
+}
+
 // Scope defines model for Scope.
 type Scope string
 
@@ -319,6 +511,40 @@ type SecurityStatus struct {
 	Passkeys               []PasskeySummary `json:"passkeys"`
 	RecoveryCodesRemaining int              `json:"recoveryCodesRemaining"`
 	TotpEnabled            bool             `json:"totpEnabled"`
+}
+
+// Service defines model for Service.
+type Service struct {
+	Active          bool        `json:"active"`
+	BufferMinutes   int         `json:"bufferMinutes"`
+	CreatedAt       time.Time   `json:"createdAt"`
+	DepositCents    int64       `json:"depositCents"`
+	DepositPercent  int         `json:"depositPercent"`
+	DurationMinutes int         `json:"durationMinutes"`
+	Id              string      `json:"id"`
+	Name            string      `json:"name"`
+	PaymentMode     PaymentMode `json:"paymentMode"`
+	PriceCents      int64       `json:"priceCents"`
+	RoomType        string      `json:"roomType"`
+	UpdatedAt       time.Time   `json:"updatedAt"`
+}
+
+// ServiceInput defines model for ServiceInput.
+type ServiceInput struct {
+	Active          bool        `json:"active"`
+	BufferMinutes   int         `json:"bufferMinutes"`
+	DepositCents    int64       `json:"depositCents"`
+	DepositPercent  int         `json:"depositPercent"`
+	DurationMinutes int         `json:"durationMinutes"`
+	Name            string      `json:"name"`
+	PaymentMode     PaymentMode `json:"paymentMode"`
+	PriceCents      int64       `json:"priceCents"`
+	RoomType        string      `json:"roomType"`
+}
+
+// ServicesListResponse defines model for ServicesListResponse.
+type ServicesListResponse struct {
+	Services []Service `json:"services"`
 }
 
 // Session defines model for Session.
@@ -387,6 +613,43 @@ type TooManyRequests = Problem
 // Unauthorized Error según RFC 9457, con un código estable.
 type Unauthorized = Problem
 
+// GetScheduleAvailabilityParams defines parameters for GetScheduleAvailability.
+type GetScheduleAvailabilityParams struct {
+	ServiceId      string    `form:"serviceId" json:"serviceId"`
+	From           time.Time `form:"from" json:"from"`
+	To             time.Time `form:"to" json:"to"`
+	PractitionerId *string   `form:"practitionerId,omitempty" json:"practitionerId,omitempty"`
+	StepMinutes    *int      `form:"stepMinutes,omitempty" json:"stepMinutes,omitempty"`
+}
+
+// GetScheduleBlocksParams defines parameters for GetScheduleBlocks.
+type GetScheduleBlocksParams struct {
+	From time.Time `form:"from" json:"from"`
+	To   time.Time `form:"to" json:"to"`
+}
+
+// GetSchedulePractitionersParams defines parameters for GetSchedulePractitioners.
+type GetSchedulePractitionersParams struct {
+	ActiveOnly *bool `form:"activeOnly,omitempty" json:"activeOnly,omitempty"`
+}
+
+// GetScheduleRoomsParams defines parameters for GetScheduleRooms.
+type GetScheduleRoomsParams struct {
+	ActiveOnly *bool `form:"activeOnly,omitempty" json:"activeOnly,omitempty"`
+}
+
+// GetScheduleRulesParams defines parameters for GetScheduleRules.
+type GetScheduleRulesParams struct {
+	PractitionerId *string `form:"practitionerId,omitempty" json:"practitionerId,omitempty"`
+	RoomId         *string `form:"roomId,omitempty" json:"roomId,omitempty"`
+	ActiveOnly     *bool   `form:"activeOnly,omitempty" json:"activeOnly,omitempty"`
+}
+
+// GetScheduleServicesParams defines parameters for GetScheduleServices.
+type GetScheduleServicesParams struct {
+	ActiveOnly *bool `form:"activeOnly,omitempty" json:"activeOnly,omitempty"`
+}
+
 // PostAuthInvitationAcceptJSONRequestBody defines body for PostAuthInvitationAccept for application/json ContentType.
 type PostAuthInvitationAcceptJSONRequestBody = InvitationTokenRequest
 
@@ -419,6 +682,33 @@ type PostRbacRolesJSONRequestBody = RoleInput
 
 // PutRbacRoleJSONRequestBody defines body for PutRbacRole for application/json ContentType.
 type PutRbacRoleJSONRequestBody = RoleInput
+
+// PostScheduleBlocksJSONRequestBody defines body for PostScheduleBlocks for application/json ContentType.
+type PostScheduleBlocksJSONRequestBody = BlockInput
+
+// PostSchedulePractitionersJSONRequestBody defines body for PostSchedulePractitioners for application/json ContentType.
+type PostSchedulePractitionersJSONRequestBody = PractitionerInput
+
+// PutSchedulePractitionerJSONRequestBody defines body for PutSchedulePractitioner for application/json ContentType.
+type PutSchedulePractitionerJSONRequestBody = PractitionerInput
+
+// PostScheduleRoomsJSONRequestBody defines body for PostScheduleRooms for application/json ContentType.
+type PostScheduleRoomsJSONRequestBody = RoomInput
+
+// PutScheduleRoomJSONRequestBody defines body for PutScheduleRoom for application/json ContentType.
+type PutScheduleRoomJSONRequestBody = RoomInput
+
+// PostScheduleRulesJSONRequestBody defines body for PostScheduleRules for application/json ContentType.
+type PostScheduleRulesJSONRequestBody = AvailabilityRuleInput
+
+// PutScheduleRuleJSONRequestBody defines body for PutScheduleRule for application/json ContentType.
+type PutScheduleRuleJSONRequestBody = AvailabilityRuleInput
+
+// PostScheduleServicesJSONRequestBody defines body for PostScheduleServices for application/json ContentType.
+type PostScheduleServicesJSONRequestBody = ServiceInput
+
+// PutScheduleServiceJSONRequestBody defines body for PutScheduleService for application/json ContentType.
+type PutScheduleServiceJSONRequestBody = ServiceInput
 
 // PostUsersInvitationsJSONRequestBody defines body for PostUsersInvitations for application/json ContentType.
 type PostUsersInvitationsJSONRequestBody = CreateInvitationRequest
@@ -491,6 +781,57 @@ type ServerInterface interface {
 	// GetReadyz El proceso puede atender peticiones (MongoDB responde).
 	// (GET /readyz)
 	GetReadyz(w http.ResponseWriter, r *http.Request)
+	// GetScheduleAvailability Calcula los espacios disponibles para reservar un servicio en un rango de fechas.
+	// (GET /schedule/availability)
+	GetScheduleAvailability(w http.ResponseWriter, r *http.Request, params GetScheduleAvailabilityParams)
+	// GetScheduleBlocks Lista bloqueos de agenda en un rango de fechas.
+	// (GET /schedule/blocks)
+	GetScheduleBlocks(w http.ResponseWriter, r *http.Request, params GetScheduleBlocksParams)
+	// PostScheduleBlocks Crea un bloqueo puntual para la clínica, un profesional o un consultorio.
+	// (POST /schedule/blocks)
+	PostScheduleBlocks(w http.ResponseWriter, r *http.Request)
+	// DeleteScheduleBlock Elimina un bloqueo puntual.
+	// (DELETE /schedule/blocks/{blockId})
+	DeleteScheduleBlock(w http.ResponseWriter, r *http.Request, blockId string)
+	// GetSchedulePractitioners Lista los médicos o profesionales de la clínica actual.
+	// (GET /schedule/practitioners)
+	GetSchedulePractitioners(w http.ResponseWriter, r *http.Request, params GetSchedulePractitionersParams)
+	// PostSchedulePractitioners Crea un profesional en el catálogo de la clínica.
+	// (POST /schedule/practitioners)
+	PostSchedulePractitioners(w http.ResponseWriter, r *http.Request)
+	// PutSchedulePractitioner Actualiza los datos de un profesional.
+	// (PUT /schedule/practitioners/{practitionerId})
+	PutSchedulePractitioner(w http.ResponseWriter, r *http.Request, practitionerId string)
+	// GetScheduleRooms Lista los consultorios de la clínica actual.
+	// (GET /schedule/rooms)
+	GetScheduleRooms(w http.ResponseWriter, r *http.Request, params GetScheduleRoomsParams)
+	// PostScheduleRooms Crea un consultorio en la clínica actual.
+	// (POST /schedule/rooms)
+	PostScheduleRooms(w http.ResponseWriter, r *http.Request)
+	// PutScheduleRoom Actualiza un consultorio existente.
+	// (PUT /schedule/rooms/{roomId})
+	PutScheduleRoom(w http.ResponseWriter, r *http.Request, roomId string)
+	// GetScheduleRules Lista las reglas semanales de disponibilidad de la clínica.
+	// (GET /schedule/rules)
+	GetScheduleRules(w http.ResponseWriter, r *http.Request, params GetScheduleRulesParams)
+	// PostScheduleRules Crea una regla semanal de disponibilidad.
+	// (POST /schedule/rules)
+	PostScheduleRules(w http.ResponseWriter, r *http.Request)
+	// DeleteScheduleRule Elimina una regla semanal de disponibilidad.
+	// (DELETE /schedule/rules/{ruleId})
+	DeleteScheduleRule(w http.ResponseWriter, r *http.Request, ruleId string)
+	// PutScheduleRule Actualiza una regla semanal de disponibilidad.
+	// (PUT /schedule/rules/{ruleId})
+	PutScheduleRule(w http.ResponseWriter, r *http.Request, ruleId string)
+	// GetScheduleServices Lista los servicios configurados en la clínica actual.
+	// (GET /schedule/services)
+	GetScheduleServices(w http.ResponseWriter, r *http.Request, params GetScheduleServicesParams)
+	// PostScheduleServices Crea un servicio en la clínica actual.
+	// (POST /schedule/services)
+	PostScheduleServices(w http.ResponseWriter, r *http.Request)
+	// PutScheduleService Actualiza un servicio existente.
+	// (PUT /schedule/services/{serviceId})
+	PutScheduleService(w http.ResponseWriter, r *http.Request, serviceId string)
 	// PostUsersInvitations Crea una invitación de un solo uso para sumar personal a la clínica.
 	// (POST /users/invitations)
 	PostUsersInvitations(w http.ResponseWriter, r *http.Request)
@@ -832,6 +1173,521 @@ func (siw *ServerInterfaceWrapper) GetReadyz(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
+// GetScheduleAvailability operation middleware
+func (siw *ServerInterfaceWrapper) GetScheduleAvailability(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScheduleAvailabilityParams
+
+	// ------------- Required query parameter "serviceId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "serviceId", r.URL.Query(), &params.ServiceId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "serviceId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceId", Err: err})
+		}
+		return
+	}
+
+	// ------------- Required query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "from", r.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Required query parameter "to" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "to", r.URL.Query(), &params.To, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "to"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "practitionerId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "practitionerId", r.URL.Query(), &params.PractitionerId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "practitionerId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "practitionerId", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "stepMinutes" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "stepMinutes", r.URL.Query(), &params.StepMinutes, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "stepMinutes"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "stepMinutes", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetScheduleAvailability(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetScheduleBlocks operation middleware
+func (siw *ServerInterfaceWrapper) GetScheduleBlocks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScheduleBlocksParams
+
+	// ------------- Required query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "from", r.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Required query parameter "to" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "to", r.URL.Query(), &params.To, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "to"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetScheduleBlocks(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostScheduleBlocks operation middleware
+func (siw *ServerInterfaceWrapper) PostScheduleBlocks(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostScheduleBlocks(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteScheduleBlock operation middleware
+func (siw *ServerInterfaceWrapper) DeleteScheduleBlock(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "blockId" -------------
+	var blockId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "blockId", r.PathValue("blockId"), &blockId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "blockId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteScheduleBlock(w, r, blockId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSchedulePractitioners operation middleware
+func (siw *ServerInterfaceWrapper) GetSchedulePractitioners(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSchedulePractitionersParams
+
+	// ------------- Optional query parameter "activeOnly" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "activeOnly", r.URL.Query(), &params.ActiveOnly, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "activeOnly"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "activeOnly", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSchedulePractitioners(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostSchedulePractitioners operation middleware
+func (siw *ServerInterfaceWrapper) PostSchedulePractitioners(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostSchedulePractitioners(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutSchedulePractitioner operation middleware
+func (siw *ServerInterfaceWrapper) PutSchedulePractitioner(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "practitionerId" -------------
+	var practitionerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "practitionerId", r.PathValue("practitionerId"), &practitionerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "practitionerId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutSchedulePractitioner(w, r, practitionerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetScheduleRooms operation middleware
+func (siw *ServerInterfaceWrapper) GetScheduleRooms(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScheduleRoomsParams
+
+	// ------------- Optional query parameter "activeOnly" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "activeOnly", r.URL.Query(), &params.ActiveOnly, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "activeOnly"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "activeOnly", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetScheduleRooms(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostScheduleRooms operation middleware
+func (siw *ServerInterfaceWrapper) PostScheduleRooms(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostScheduleRooms(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutScheduleRoom operation middleware
+func (siw *ServerInterfaceWrapper) PutScheduleRoom(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "roomId" -------------
+	var roomId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "roomId", r.PathValue("roomId"), &roomId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "roomId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutScheduleRoom(w, r, roomId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetScheduleRules operation middleware
+func (siw *ServerInterfaceWrapper) GetScheduleRules(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScheduleRulesParams
+
+	// ------------- Optional query parameter "practitionerId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "practitionerId", r.URL.Query(), &params.PractitionerId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "practitionerId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "practitionerId", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "roomId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "roomId", r.URL.Query(), &params.RoomId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "roomId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "roomId", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "activeOnly" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "activeOnly", r.URL.Query(), &params.ActiveOnly, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "activeOnly"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "activeOnly", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetScheduleRules(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostScheduleRules operation middleware
+func (siw *ServerInterfaceWrapper) PostScheduleRules(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostScheduleRules(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteScheduleRule operation middleware
+func (siw *ServerInterfaceWrapper) DeleteScheduleRule(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ruleId" -------------
+	var ruleId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ruleId", r.PathValue("ruleId"), &ruleId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteScheduleRule(w, r, ruleId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutScheduleRule operation middleware
+func (siw *ServerInterfaceWrapper) PutScheduleRule(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ruleId" -------------
+	var ruleId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ruleId", r.PathValue("ruleId"), &ruleId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutScheduleRule(w, r, ruleId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetScheduleServices operation middleware
+func (siw *ServerInterfaceWrapper) GetScheduleServices(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetScheduleServicesParams
+
+	// ------------- Optional query parameter "activeOnly" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "activeOnly", r.URL.Query(), &params.ActiveOnly, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "activeOnly"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "activeOnly", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetScheduleServices(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostScheduleServices operation middleware
+func (siw *ServerInterfaceWrapper) PostScheduleServices(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostScheduleServices(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutScheduleService operation middleware
+func (siw *ServerInterfaceWrapper) PutScheduleService(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "serviceId" -------------
+	var serviceId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceId", r.PathValue("serviceId"), &serviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutScheduleService(w, r, serviceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // PostUsersInvitations operation middleware
 func (siw *ServerInterfaceWrapper) PostUsersInvitations(w http.ResponseWriter, r *http.Request) {
 
@@ -1057,6 +1913,23 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/users/invitations", wrapper.PostUsersInvitations)
 	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/users/members/{userId}/role", wrapper.PutUsersMemberRole)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/users/members/{userId}", wrapper.DeleteUsersMember)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/schedule/practitioners", wrapper.GetSchedulePractitioners)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/schedule/practitioners", wrapper.PostSchedulePractitioners)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/schedule/practitioners/{practitionerId}", wrapper.PutSchedulePractitioner)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/schedule/rooms", wrapper.GetScheduleRooms)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/schedule/rooms", wrapper.PostScheduleRooms)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/schedule/rooms/{roomId}", wrapper.PutScheduleRoom)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/schedule/services", wrapper.GetScheduleServices)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/schedule/services", wrapper.PostScheduleServices)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/schedule/services/{serviceId}", wrapper.PutScheduleService)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/schedule/rules", wrapper.GetScheduleRules)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/schedule/rules", wrapper.PostScheduleRules)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/schedule/rules/{ruleId}", wrapper.DeleteScheduleRule)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/schedule/rules/{ruleId}", wrapper.PutScheduleRule)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/schedule/blocks", wrapper.GetScheduleBlocks)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/schedule/blocks", wrapper.PostScheduleBlocks)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/schedule/blocks/{blockId}", wrapper.DeleteScheduleBlock)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/schedule/availability", wrapper.GetScheduleAvailability)
 
 	return m
 }
@@ -2523,6 +3396,1316 @@ func (response GetReadyz503ApplicationProblemPlusJSONResponse) VisitGetReadyzRes
 	return err
 }
 
+type GetScheduleAvailabilityRequestObject struct {
+	Params GetScheduleAvailabilityParams
+}
+
+type GetScheduleAvailabilityResponseObject interface {
+	VisitGetScheduleAvailabilityResponse(w http.ResponseWriter) error
+}
+
+type GetScheduleAvailability200JSONResponse AvailabilityResponse
+
+func (response GetScheduleAvailability200JSONResponse) VisitGetScheduleAvailabilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleAvailability400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleAvailability400ApplicationProblemPlusJSONResponse) VisitGetScheduleAvailabilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleAvailability401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleAvailability401ApplicationProblemPlusJSONResponse) VisitGetScheduleAvailabilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleAvailability403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleAvailability403ApplicationProblemPlusJSONResponse) VisitGetScheduleAvailabilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleAvailability404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleAvailability404ApplicationProblemPlusJSONResponse) VisitGetScheduleAvailabilityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleBlocksRequestObject struct {
+	Params GetScheduleBlocksParams
+}
+
+type GetScheduleBlocksResponseObject interface {
+	VisitGetScheduleBlocksResponse(w http.ResponseWriter) error
+}
+
+type GetScheduleBlocks200JSONResponse BlocksListResponse
+
+func (response GetScheduleBlocks200JSONResponse) VisitGetScheduleBlocksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleBlocks400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleBlocks400ApplicationProblemPlusJSONResponse) VisitGetScheduleBlocksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleBlocks401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleBlocks401ApplicationProblemPlusJSONResponse) VisitGetScheduleBlocksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleBlocks403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleBlocks403ApplicationProblemPlusJSONResponse) VisitGetScheduleBlocksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleBlocksRequestObject struct {
+	Body *PostScheduleBlocksJSONRequestBody
+}
+
+type PostScheduleBlocksResponseObject interface {
+	VisitPostScheduleBlocksResponse(w http.ResponseWriter) error
+}
+
+type PostScheduleBlocks201JSONResponse Block
+
+func (response PostScheduleBlocks201JSONResponse) VisitPostScheduleBlocksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleBlocks400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleBlocks400ApplicationProblemPlusJSONResponse) VisitPostScheduleBlocksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleBlocks401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleBlocks401ApplicationProblemPlusJSONResponse) VisitPostScheduleBlocksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleBlocks403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleBlocks403ApplicationProblemPlusJSONResponse) VisitPostScheduleBlocksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteScheduleBlockRequestObject struct {
+	BlockId string `json:"blockId"`
+}
+
+type DeleteScheduleBlockResponseObject interface {
+	VisitDeleteScheduleBlockResponse(w http.ResponseWriter) error
+}
+
+type DeleteScheduleBlock204Response struct {
+}
+
+func (response DeleteScheduleBlock204Response) VisitDeleteScheduleBlockResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteScheduleBlock400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteScheduleBlock400ApplicationProblemPlusJSONResponse) VisitDeleteScheduleBlockResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteScheduleBlock401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteScheduleBlock401ApplicationProblemPlusJSONResponse) VisitDeleteScheduleBlockResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteScheduleBlock403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteScheduleBlock403ApplicationProblemPlusJSONResponse) VisitDeleteScheduleBlockResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteScheduleBlock404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteScheduleBlock404ApplicationProblemPlusJSONResponse) VisitDeleteScheduleBlockResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSchedulePractitionersRequestObject struct {
+	Params GetSchedulePractitionersParams
+}
+
+type GetSchedulePractitionersResponseObject interface {
+	VisitGetSchedulePractitionersResponse(w http.ResponseWriter) error
+}
+
+type GetSchedulePractitioners200JSONResponse PractitionersListResponse
+
+func (response GetSchedulePractitioners200JSONResponse) VisitGetSchedulePractitionersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSchedulePractitioners401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GetSchedulePractitioners401ApplicationProblemPlusJSONResponse) VisitGetSchedulePractitionersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSchedulePractitioners403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GetSchedulePractitioners403ApplicationProblemPlusJSONResponse) VisitGetSchedulePractitionersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSchedulePractitionersRequestObject struct {
+	Body *PostSchedulePractitionersJSONRequestBody
+}
+
+type PostSchedulePractitionersResponseObject interface {
+	VisitPostSchedulePractitionersResponse(w http.ResponseWriter) error
+}
+
+type PostSchedulePractitioners201JSONResponse Practitioner
+
+func (response PostSchedulePractitioners201JSONResponse) VisitPostSchedulePractitionersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSchedulePractitioners400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PostSchedulePractitioners400ApplicationProblemPlusJSONResponse) VisitPostSchedulePractitionersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSchedulePractitioners401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PostSchedulePractitioners401ApplicationProblemPlusJSONResponse) VisitPostSchedulePractitionersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSchedulePractitioners403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PostSchedulePractitioners403ApplicationProblemPlusJSONResponse) VisitPostSchedulePractitionersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutSchedulePractitionerRequestObject struct {
+	PractitionerId string `json:"practitionerId"`
+	Body           *PutSchedulePractitionerJSONRequestBody
+}
+
+type PutSchedulePractitionerResponseObject interface {
+	VisitPutSchedulePractitionerResponse(w http.ResponseWriter) error
+}
+
+type PutSchedulePractitioner200JSONResponse Practitioner
+
+func (response PutSchedulePractitioner200JSONResponse) VisitPutSchedulePractitionerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutSchedulePractitioner400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PutSchedulePractitioner400ApplicationProblemPlusJSONResponse) VisitPutSchedulePractitionerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutSchedulePractitioner401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PutSchedulePractitioner401ApplicationProblemPlusJSONResponse) VisitPutSchedulePractitionerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutSchedulePractitioner403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PutSchedulePractitioner403ApplicationProblemPlusJSONResponse) VisitPutSchedulePractitionerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutSchedulePractitioner404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response PutSchedulePractitioner404ApplicationProblemPlusJSONResponse) VisitPutSchedulePractitionerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleRoomsRequestObject struct {
+	Params GetScheduleRoomsParams
+}
+
+type GetScheduleRoomsResponseObject interface {
+	VisitGetScheduleRoomsResponse(w http.ResponseWriter) error
+}
+
+type GetScheduleRooms200JSONResponse RoomsListResponse
+
+func (response GetScheduleRooms200JSONResponse) VisitGetScheduleRoomsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleRooms401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleRooms401ApplicationProblemPlusJSONResponse) VisitGetScheduleRoomsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleRooms403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleRooms403ApplicationProblemPlusJSONResponse) VisitGetScheduleRoomsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRoomsRequestObject struct {
+	Body *PostScheduleRoomsJSONRequestBody
+}
+
+type PostScheduleRoomsResponseObject interface {
+	VisitPostScheduleRoomsResponse(w http.ResponseWriter) error
+}
+
+type PostScheduleRooms201JSONResponse Room
+
+func (response PostScheduleRooms201JSONResponse) VisitPostScheduleRoomsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRooms400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleRooms400ApplicationProblemPlusJSONResponse) VisitPostScheduleRoomsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRooms401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleRooms401ApplicationProblemPlusJSONResponse) VisitPostScheduleRoomsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRooms403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleRooms403ApplicationProblemPlusJSONResponse) VisitPostScheduleRoomsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRooms409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleRooms409ApplicationProblemPlusJSONResponse) VisitPostScheduleRoomsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRoomRequestObject struct {
+	RoomId string `json:"roomId"`
+	Body   *PutScheduleRoomJSONRequestBody
+}
+
+type PutScheduleRoomResponseObject interface {
+	VisitPutScheduleRoomResponse(w http.ResponseWriter) error
+}
+
+type PutScheduleRoom200JSONResponse Room
+
+func (response PutScheduleRoom200JSONResponse) VisitPutScheduleRoomResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRoom400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRoom400ApplicationProblemPlusJSONResponse) VisitPutScheduleRoomResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRoom401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRoom401ApplicationProblemPlusJSONResponse) VisitPutScheduleRoomResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRoom403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRoom403ApplicationProblemPlusJSONResponse) VisitPutScheduleRoomResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRoom404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRoom404ApplicationProblemPlusJSONResponse) VisitPutScheduleRoomResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRoom409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRoom409ApplicationProblemPlusJSONResponse) VisitPutScheduleRoomResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleRulesRequestObject struct {
+	Params GetScheduleRulesParams
+}
+
+type GetScheduleRulesResponseObject interface {
+	VisitGetScheduleRulesResponse(w http.ResponseWriter) error
+}
+
+type GetScheduleRules200JSONResponse RulesListResponse
+
+func (response GetScheduleRules200JSONResponse) VisitGetScheduleRulesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleRules400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleRules400ApplicationProblemPlusJSONResponse) VisitGetScheduleRulesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleRules401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleRules401ApplicationProblemPlusJSONResponse) VisitGetScheduleRulesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleRules403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleRules403ApplicationProblemPlusJSONResponse) VisitGetScheduleRulesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRulesRequestObject struct {
+	Body *PostScheduleRulesJSONRequestBody
+}
+
+type PostScheduleRulesResponseObject interface {
+	VisitPostScheduleRulesResponse(w http.ResponseWriter) error
+}
+
+type PostScheduleRules201JSONResponse AvailabilityRule
+
+func (response PostScheduleRules201JSONResponse) VisitPostScheduleRulesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRules400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleRules400ApplicationProblemPlusJSONResponse) VisitPostScheduleRulesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRules401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleRules401ApplicationProblemPlusJSONResponse) VisitPostScheduleRulesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleRules403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleRules403ApplicationProblemPlusJSONResponse) VisitPostScheduleRulesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteScheduleRuleRequestObject struct {
+	RuleId string `json:"ruleId"`
+}
+
+type DeleteScheduleRuleResponseObject interface {
+	VisitDeleteScheduleRuleResponse(w http.ResponseWriter) error
+}
+
+type DeleteScheduleRule204Response struct {
+}
+
+func (response DeleteScheduleRule204Response) VisitDeleteScheduleRuleResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteScheduleRule400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteScheduleRule400ApplicationProblemPlusJSONResponse) VisitDeleteScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteScheduleRule401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteScheduleRule401ApplicationProblemPlusJSONResponse) VisitDeleteScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteScheduleRule403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteScheduleRule403ApplicationProblemPlusJSONResponse) VisitDeleteScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteScheduleRule404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteScheduleRule404ApplicationProblemPlusJSONResponse) VisitDeleteScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRuleRequestObject struct {
+	RuleId string `json:"ruleId"`
+	Body   *PutScheduleRuleJSONRequestBody
+}
+
+type PutScheduleRuleResponseObject interface {
+	VisitPutScheduleRuleResponse(w http.ResponseWriter) error
+}
+
+type PutScheduleRule200JSONResponse AvailabilityRule
+
+func (response PutScheduleRule200JSONResponse) VisitPutScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRule400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRule400ApplicationProblemPlusJSONResponse) VisitPutScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRule401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRule401ApplicationProblemPlusJSONResponse) VisitPutScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRule403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRule403ApplicationProblemPlusJSONResponse) VisitPutScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleRule404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleRule404ApplicationProblemPlusJSONResponse) VisitPutScheduleRuleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleServicesRequestObject struct {
+	Params GetScheduleServicesParams
+}
+
+type GetScheduleServicesResponseObject interface {
+	VisitGetScheduleServicesResponse(w http.ResponseWriter) error
+}
+
+type GetScheduleServices200JSONResponse ServicesListResponse
+
+func (response GetScheduleServices200JSONResponse) VisitGetScheduleServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleServices401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleServices401ApplicationProblemPlusJSONResponse) VisitGetScheduleServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetScheduleServices403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GetScheduleServices403ApplicationProblemPlusJSONResponse) VisitGetScheduleServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleServicesRequestObject struct {
+	Body *PostScheduleServicesJSONRequestBody
+}
+
+type PostScheduleServicesResponseObject interface {
+	VisitPostScheduleServicesResponse(w http.ResponseWriter) error
+}
+
+type PostScheduleServices201JSONResponse Service
+
+func (response PostScheduleServices201JSONResponse) VisitPostScheduleServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleServices400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleServices400ApplicationProblemPlusJSONResponse) VisitPostScheduleServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleServices401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleServices401ApplicationProblemPlusJSONResponse) VisitPostScheduleServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleServices403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleServices403ApplicationProblemPlusJSONResponse) VisitPostScheduleServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostScheduleServices409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response PostScheduleServices409ApplicationProblemPlusJSONResponse) VisitPostScheduleServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleServiceRequestObject struct {
+	ServiceId string `json:"serviceId"`
+	Body      *PutScheduleServiceJSONRequestBody
+}
+
+type PutScheduleServiceResponseObject interface {
+	VisitPutScheduleServiceResponse(w http.ResponseWriter) error
+}
+
+type PutScheduleService200JSONResponse Service
+
+func (response PutScheduleService200JSONResponse) VisitPutScheduleServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleService400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleService400ApplicationProblemPlusJSONResponse) VisitPutScheduleServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleService401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleService401ApplicationProblemPlusJSONResponse) VisitPutScheduleServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleService403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleService403ApplicationProblemPlusJSONResponse) VisitPutScheduleServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleService404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleService404ApplicationProblemPlusJSONResponse) VisitPutScheduleServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutScheduleService409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response PutScheduleService409ApplicationProblemPlusJSONResponse) VisitPutScheduleServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type PostUsersInvitationsRequestObject struct {
 	Body *PostUsersInvitationsJSONRequestBody
 }
@@ -2926,6 +5109,57 @@ type StrictServerInterface interface {
 	// GetReadyz El proceso puede atender peticiones (MongoDB responde).
 	// (GET /readyz)
 	GetReadyz(ctx context.Context, request GetReadyzRequestObject) (GetReadyzResponseObject, error)
+	// GetScheduleAvailability Calcula los espacios disponibles para reservar un servicio en un rango de fechas.
+	// (GET /schedule/availability)
+	GetScheduleAvailability(ctx context.Context, request GetScheduleAvailabilityRequestObject) (GetScheduleAvailabilityResponseObject, error)
+	// GetScheduleBlocks Lista bloqueos de agenda en un rango de fechas.
+	// (GET /schedule/blocks)
+	GetScheduleBlocks(ctx context.Context, request GetScheduleBlocksRequestObject) (GetScheduleBlocksResponseObject, error)
+	// PostScheduleBlocks Crea un bloqueo puntual para la clínica, un profesional o un consultorio.
+	// (POST /schedule/blocks)
+	PostScheduleBlocks(ctx context.Context, request PostScheduleBlocksRequestObject) (PostScheduleBlocksResponseObject, error)
+	// DeleteScheduleBlock Elimina un bloqueo puntual.
+	// (DELETE /schedule/blocks/{blockId})
+	DeleteScheduleBlock(ctx context.Context, request DeleteScheduleBlockRequestObject) (DeleteScheduleBlockResponseObject, error)
+	// GetSchedulePractitioners Lista los médicos o profesionales de la clínica actual.
+	// (GET /schedule/practitioners)
+	GetSchedulePractitioners(ctx context.Context, request GetSchedulePractitionersRequestObject) (GetSchedulePractitionersResponseObject, error)
+	// PostSchedulePractitioners Crea un profesional en el catálogo de la clínica.
+	// (POST /schedule/practitioners)
+	PostSchedulePractitioners(ctx context.Context, request PostSchedulePractitionersRequestObject) (PostSchedulePractitionersResponseObject, error)
+	// PutSchedulePractitioner Actualiza los datos de un profesional.
+	// (PUT /schedule/practitioners/{practitionerId})
+	PutSchedulePractitioner(ctx context.Context, request PutSchedulePractitionerRequestObject) (PutSchedulePractitionerResponseObject, error)
+	// GetScheduleRooms Lista los consultorios de la clínica actual.
+	// (GET /schedule/rooms)
+	GetScheduleRooms(ctx context.Context, request GetScheduleRoomsRequestObject) (GetScheduleRoomsResponseObject, error)
+	// PostScheduleRooms Crea un consultorio en la clínica actual.
+	// (POST /schedule/rooms)
+	PostScheduleRooms(ctx context.Context, request PostScheduleRoomsRequestObject) (PostScheduleRoomsResponseObject, error)
+	// PutScheduleRoom Actualiza un consultorio existente.
+	// (PUT /schedule/rooms/{roomId})
+	PutScheduleRoom(ctx context.Context, request PutScheduleRoomRequestObject) (PutScheduleRoomResponseObject, error)
+	// GetScheduleRules Lista las reglas semanales de disponibilidad de la clínica.
+	// (GET /schedule/rules)
+	GetScheduleRules(ctx context.Context, request GetScheduleRulesRequestObject) (GetScheduleRulesResponseObject, error)
+	// PostScheduleRules Crea una regla semanal de disponibilidad.
+	// (POST /schedule/rules)
+	PostScheduleRules(ctx context.Context, request PostScheduleRulesRequestObject) (PostScheduleRulesResponseObject, error)
+	// DeleteScheduleRule Elimina una regla semanal de disponibilidad.
+	// (DELETE /schedule/rules/{ruleId})
+	DeleteScheduleRule(ctx context.Context, request DeleteScheduleRuleRequestObject) (DeleteScheduleRuleResponseObject, error)
+	// PutScheduleRule Actualiza una regla semanal de disponibilidad.
+	// (PUT /schedule/rules/{ruleId})
+	PutScheduleRule(ctx context.Context, request PutScheduleRuleRequestObject) (PutScheduleRuleResponseObject, error)
+	// GetScheduleServices Lista los servicios configurados en la clínica actual.
+	// (GET /schedule/services)
+	GetScheduleServices(ctx context.Context, request GetScheduleServicesRequestObject) (GetScheduleServicesResponseObject, error)
+	// PostScheduleServices Crea un servicio en la clínica actual.
+	// (POST /schedule/services)
+	PostScheduleServices(ctx context.Context, request PostScheduleServicesRequestObject) (PostScheduleServicesResponseObject, error)
+	// PutScheduleService Actualiza un servicio existente.
+	// (PUT /schedule/services/{serviceId})
+	PutScheduleService(ctx context.Context, request PutScheduleServiceRequestObject) (PutScheduleServiceResponseObject, error)
 	// PostUsersInvitations Crea una invitación de un solo uso para sumar personal a la clínica.
 	// (POST /users/invitations)
 	PostUsersInvitations(ctx context.Context, request PostUsersInvitationsRequestObject) (PostUsersInvitationsResponseObject, error)
@@ -3557,6 +5791,501 @@ func (sh *strictHandler) GetReadyz(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetReadyzResponseObject); ok {
 		if err := validResponse.VisitGetReadyzResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetScheduleAvailability operation middleware
+func (sh *strictHandler) GetScheduleAvailability(w http.ResponseWriter, r *http.Request, params GetScheduleAvailabilityParams) {
+	var request GetScheduleAvailabilityRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetScheduleAvailability(ctx, request.(GetScheduleAvailabilityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetScheduleAvailability")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetScheduleAvailabilityResponseObject); ok {
+		if err := validResponse.VisitGetScheduleAvailabilityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetScheduleBlocks operation middleware
+func (sh *strictHandler) GetScheduleBlocks(w http.ResponseWriter, r *http.Request, params GetScheduleBlocksParams) {
+	var request GetScheduleBlocksRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetScheduleBlocks(ctx, request.(GetScheduleBlocksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetScheduleBlocks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetScheduleBlocksResponseObject); ok {
+		if err := validResponse.VisitGetScheduleBlocksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostScheduleBlocks operation middleware
+func (sh *strictHandler) PostScheduleBlocks(w http.ResponseWriter, r *http.Request) {
+	var request PostScheduleBlocksRequestObject
+
+	var body PostScheduleBlocksJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostScheduleBlocks(ctx, request.(PostScheduleBlocksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostScheduleBlocks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostScheduleBlocksResponseObject); ok {
+		if err := validResponse.VisitPostScheduleBlocksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteScheduleBlock operation middleware
+func (sh *strictHandler) DeleteScheduleBlock(w http.ResponseWriter, r *http.Request, blockId string) {
+	var request DeleteScheduleBlockRequestObject
+
+	request.BlockId = blockId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteScheduleBlock(ctx, request.(DeleteScheduleBlockRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteScheduleBlock")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteScheduleBlockResponseObject); ok {
+		if err := validResponse.VisitDeleteScheduleBlockResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetSchedulePractitioners operation middleware
+func (sh *strictHandler) GetSchedulePractitioners(w http.ResponseWriter, r *http.Request, params GetSchedulePractitionersParams) {
+	var request GetSchedulePractitionersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSchedulePractitioners(ctx, request.(GetSchedulePractitionersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSchedulePractitioners")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSchedulePractitionersResponseObject); ok {
+		if err := validResponse.VisitGetSchedulePractitionersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostSchedulePractitioners operation middleware
+func (sh *strictHandler) PostSchedulePractitioners(w http.ResponseWriter, r *http.Request) {
+	var request PostSchedulePractitionersRequestObject
+
+	var body PostSchedulePractitionersJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostSchedulePractitioners(ctx, request.(PostSchedulePractitionersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostSchedulePractitioners")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostSchedulePractitionersResponseObject); ok {
+		if err := validResponse.VisitPostSchedulePractitionersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PutSchedulePractitioner operation middleware
+func (sh *strictHandler) PutSchedulePractitioner(w http.ResponseWriter, r *http.Request, practitionerId string) {
+	var request PutSchedulePractitionerRequestObject
+
+	request.PractitionerId = practitionerId
+
+	var body PutSchedulePractitionerJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PutSchedulePractitioner(ctx, request.(PutSchedulePractitionerRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PutSchedulePractitioner")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PutSchedulePractitionerResponseObject); ok {
+		if err := validResponse.VisitPutSchedulePractitionerResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetScheduleRooms operation middleware
+func (sh *strictHandler) GetScheduleRooms(w http.ResponseWriter, r *http.Request, params GetScheduleRoomsParams) {
+	var request GetScheduleRoomsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetScheduleRooms(ctx, request.(GetScheduleRoomsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetScheduleRooms")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetScheduleRoomsResponseObject); ok {
+		if err := validResponse.VisitGetScheduleRoomsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostScheduleRooms operation middleware
+func (sh *strictHandler) PostScheduleRooms(w http.ResponseWriter, r *http.Request) {
+	var request PostScheduleRoomsRequestObject
+
+	var body PostScheduleRoomsJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostScheduleRooms(ctx, request.(PostScheduleRoomsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostScheduleRooms")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostScheduleRoomsResponseObject); ok {
+		if err := validResponse.VisitPostScheduleRoomsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PutScheduleRoom operation middleware
+func (sh *strictHandler) PutScheduleRoom(w http.ResponseWriter, r *http.Request, roomId string) {
+	var request PutScheduleRoomRequestObject
+
+	request.RoomId = roomId
+
+	var body PutScheduleRoomJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PutScheduleRoom(ctx, request.(PutScheduleRoomRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PutScheduleRoom")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PutScheduleRoomResponseObject); ok {
+		if err := validResponse.VisitPutScheduleRoomResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetScheduleRules operation middleware
+func (sh *strictHandler) GetScheduleRules(w http.ResponseWriter, r *http.Request, params GetScheduleRulesParams) {
+	var request GetScheduleRulesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetScheduleRules(ctx, request.(GetScheduleRulesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetScheduleRules")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetScheduleRulesResponseObject); ok {
+		if err := validResponse.VisitGetScheduleRulesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostScheduleRules operation middleware
+func (sh *strictHandler) PostScheduleRules(w http.ResponseWriter, r *http.Request) {
+	var request PostScheduleRulesRequestObject
+
+	var body PostScheduleRulesJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostScheduleRules(ctx, request.(PostScheduleRulesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostScheduleRules")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostScheduleRulesResponseObject); ok {
+		if err := validResponse.VisitPostScheduleRulesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteScheduleRule operation middleware
+func (sh *strictHandler) DeleteScheduleRule(w http.ResponseWriter, r *http.Request, ruleId string) {
+	var request DeleteScheduleRuleRequestObject
+
+	request.RuleId = ruleId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteScheduleRule(ctx, request.(DeleteScheduleRuleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteScheduleRule")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteScheduleRuleResponseObject); ok {
+		if err := validResponse.VisitDeleteScheduleRuleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PutScheduleRule operation middleware
+func (sh *strictHandler) PutScheduleRule(w http.ResponseWriter, r *http.Request, ruleId string) {
+	var request PutScheduleRuleRequestObject
+
+	request.RuleId = ruleId
+
+	var body PutScheduleRuleJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PutScheduleRule(ctx, request.(PutScheduleRuleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PutScheduleRule")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PutScheduleRuleResponseObject); ok {
+		if err := validResponse.VisitPutScheduleRuleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetScheduleServices operation middleware
+func (sh *strictHandler) GetScheduleServices(w http.ResponseWriter, r *http.Request, params GetScheduleServicesParams) {
+	var request GetScheduleServicesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetScheduleServices(ctx, request.(GetScheduleServicesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetScheduleServices")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetScheduleServicesResponseObject); ok {
+		if err := validResponse.VisitGetScheduleServicesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostScheduleServices operation middleware
+func (sh *strictHandler) PostScheduleServices(w http.ResponseWriter, r *http.Request) {
+	var request PostScheduleServicesRequestObject
+
+	var body PostScheduleServicesJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostScheduleServices(ctx, request.(PostScheduleServicesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostScheduleServices")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostScheduleServicesResponseObject); ok {
+		if err := validResponse.VisitPostScheduleServicesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PutScheduleService operation middleware
+func (sh *strictHandler) PutScheduleService(w http.ResponseWriter, r *http.Request, serviceId string) {
+	var request PutScheduleServiceRequestObject
+
+	request.ServiceId = serviceId
+
+	var body PutScheduleServiceJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PutScheduleService(ctx, request.(PutScheduleServiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PutScheduleService")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PutScheduleServiceResponseObject); ok {
+		if err := validResponse.VisitPutScheduleServiceResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
