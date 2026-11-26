@@ -169,3 +169,48 @@ func TestCreateAndListIntegration(t *testing.T) {
 		}
 	})
 }
+
+func TestMigrateAppliesPendingOperationsMigrations(t *testing.T) {
+	uri := mongotest.URI(t)
+	ctx := context.Background()
+	getenv := func(k string) string {
+		if k == "MONGO_URI" {
+			return uri
+		}
+		return ""
+	}
+
+	cl, err := mongodb.Connect(ctx, uri)
+	if err != nil {
+		t.Fatalf("mongodb.Connect: %v", err)
+	}
+	t.Cleanup(func() { _ = cl.Close(context.Background()) })
+
+	// A clinic registered before the current operations migrations existed.
+	input, err := platform.NewClinic("clinica-antigua", "Clinica Antigua", platform.TierDedicated, "pa")
+	if err != nil {
+		t.Fatalf("NewClinic: %v", err)
+	}
+	clinic, err := provisionClinic(ctx, cl.Mongo(), input, func(context.Context, *mongo.Client) (crypto.Encryptor, error) {
+		return crypto.NewFake(), nil
+	}, nil)
+	if err != nil {
+		t.Fatalf("provisionClinic: %v", err)
+	}
+
+	var out, errBuf bytes.Buffer
+	if err := run(ctx, []string{"migrate"}, getenv, &out, &errBuf); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	specs, err := cl.Mongo().Database("clinic_" + clinic.ID.Hex()).Collection("slot_locks").Indexes().ListSpecifications(ctx)
+	if err != nil {
+		t.Fatalf("ListSpecifications: %v", err)
+	}
+	for _, s := range specs {
+		if s.Name == "clinic_resource_cell_unique" {
+			return
+		}
+	}
+	t.Fatalf("slot_locks unique index missing, got %d indexes", len(specs))
+}
