@@ -14,6 +14,10 @@ import (
 const (
 	// CellMinutes is the 5-minute grid granularity for all appointments and locks.
 	CellMinutes = 5
+	// MaxAppointmentMinutes matches the longest service duration allowed.
+	MaxAppointmentMinutes = 480
+	// MaxBufferMinutes is the longest buffer allowed after an appointment.
+	MaxBufferMinutes = 120
 
 	// DefaultHoldTTL is the default duration of a held slot before expiry.
 	DefaultHoldTTL = 10 * time.Minute
@@ -153,8 +157,11 @@ func BuildSlotCells(startAt, endAt time.Time, bufferMinutes int) ([]time.Time, e
 	if !isAlignedToGrid(startUTC) || !isAlignedToGrid(endUTC) {
 		return nil, fmt.Errorf("%w: startAt and endAt must align to %d-minute boundaries", ErrInvalidAppointment, CellMinutes)
 	}
-	if bufferMinutes < 0 || bufferMinutes > 120 || bufferMinutes%CellMinutes != 0 {
-		return nil, fmt.Errorf("%w: bufferMinutes must be a %d-minute multiple in [0, 120]", ErrInvalidAppointment, CellMinutes)
+	if endUTC.Sub(startUTC) > MaxAppointmentMinutes*time.Minute {
+		return nil, fmt.Errorf("%w: appointment cannot exceed %d minutes", ErrInvalidAppointment, MaxAppointmentMinutes)
+	}
+	if bufferMinutes < 0 || bufferMinutes > MaxBufferMinutes || bufferMinutes%CellMinutes != 0 {
+		return nil, fmt.Errorf("%w: bufferMinutes must be a %d-minute multiple in [0, %d]", ErrInvalidAppointment, CellMinutes, MaxBufferMinutes)
 	}
 
 	spanEnd := endUTC.Add(time.Duration(bufferMinutes) * time.Minute)

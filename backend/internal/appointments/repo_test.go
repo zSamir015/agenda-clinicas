@@ -50,6 +50,24 @@ func TestBuildSlotCells(t *testing.T) {
 			wantErr: ErrInvalidAppointment,
 		},
 		{
+			name:      "480m appointment is allowed",
+			start:     base,
+			end:       base.Add(480 * time.Minute),
+			wantCount: 96,
+		},
+		{
+			name:    "485m appointment fails",
+			start:   base,
+			end:     base.Add(485 * time.Minute),
+			wantErr: ErrInvalidAppointment,
+		},
+		{
+			name:    "year-long appointment fails",
+			start:   base,
+			end:     base.AddDate(1, 0, 0),
+			wantErr: ErrInvalidAppointment,
+		},
+		{
 			name:    "end <= start fails",
 			start:   base,
 			end:     base,
