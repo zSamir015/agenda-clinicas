@@ -148,11 +148,20 @@ func (r *Repository) ConfirmHold(ctx context.Context, appointmentID bson.ObjectI
 			return err
 		}
 
-		if _, err := r.locks.UpdateMany(txCtx, bson.D{{Key: "appointmentId", Value: appointmentID}}, bson.D{
+		cells, err := BuildSlotCells(appt.StartAt, appt.EndAt, appt.BufferMinutes)
+		if err != nil {
+			return err
+		}
+		res, err := r.locks.UpdateMany(txCtx, bson.D{{Key: "appointmentId", Value: appointmentID}}, bson.D{
 			{Key: "$set", Value: bson.D{{Key: "status", Value: StatusConfirmed}}},
 			{Key: "$unset", Value: bson.D{{Key: "expiresAt", Value: ""}}},
-		}); err != nil {
+		})
+		if err != nil {
 			return err
+		}
+		// One lock per cell for the practitioner and one for the room.
+		if res.MatchedCount != int64(2*len(cells)) {
+			return ErrHoldExpired
 		}
 
 		got, err := r.appts.FindOne(txCtx, bson.D{{Key: "_id", Value: appointmentID}})

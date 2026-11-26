@@ -400,3 +400,27 @@ func TestReleaseHoldKeepsLocksOfConfirmedAppointment(t *testing.T) {
 		t.Fatalf("locks = %d, want 12", got)
 	}
 }
+
+// Locks can vanish before the hold expires on this clock: the TTL monitor and
+// other API instances run on their own.
+func TestConfirmHoldRequiresEveryLock(t *testing.T) {
+	repo, ctx := setupAppointmentsRepo(t)
+	held := bookAt(ctx, t, repo, futureBase(), false)
+	if _, err := repo.locks.DeleteMany(ctx, bson.D{
+		{Key: "appointmentId", Value: held.ID},
+		{Key: "cellStart", Value: held.StartAt},
+	}); err != nil {
+		t.Fatalf("delete locks: %v", err)
+	}
+
+	if _, err := repo.ConfirmHold(ctx, held.ID, nil, ""); !errors.Is(err, ErrHoldExpired) {
+		t.Fatalf("error = %v, want ErrHoldExpired", err)
+	}
+	got, err := repo.ByID(ctx, held.ID)
+	if err != nil {
+		t.Fatalf("ByID: %v", err)
+	}
+	if got.Status != StatusHeld {
+		t.Fatalf("status = %s, want held", got.Status)
+	}
+}
