@@ -216,3 +216,28 @@ func TestSweepBoundsTheClinicListing(t *testing.T) {
 		t.Fatal("listing blocked until the caller gave up")
 	}
 }
+
+func TestSweepReportsAnInterruptedPass(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	sweeper := worker.HoldSweeper{
+		Clinics: clinicList{
+			clinic("primera", platform.TierStandard, platform.StatusActive),
+			clinic("segunda", platform.TierStandard, platform.StatusActive),
+		},
+		Holds: releaseFunc(func(context.Context) (int, error) {
+			cancel()
+			return 1, nil
+		}),
+		Log: discard(),
+	}
+
+	released, err := sweeper.Sweep(ctx)
+
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("error = %v, want canceled", err)
+	}
+	if released != 1 {
+		t.Fatalf("released = %d, want 1", released)
+	}
+}

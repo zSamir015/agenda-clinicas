@@ -44,7 +44,8 @@ func (s HoldSweeper) Sweep(ctx context.Context) (int, error) {
 	total := 0
 	var errs []error
 	for _, c := range clinics {
-		if ctx.Err() != nil {
+		if err := ctx.Err(); err != nil {
+			errs = append(errs, err)
 			break
 		}
 		if c.Status != platform.StatusActive {
