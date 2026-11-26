@@ -412,38 +412,53 @@ func (r *Repository) ReleaseExpiredHolds(ctx context.Context) (int, error) {
 	}
 	released := 0
 	for _, appt := range expired {
-		err := r.runTx(ctx, func(txCtx context.Context) error {
-			res, err := r.appts.UpdateOne(txCtx, bson.D{
-				{Key: "_id", Value: appt.ID},
-				{Key: "status", Value: StatusHeld},
-				{Key: "holdExpiresAt", Value: bson.D{{Key: "$lte", Value: now}}},
-			}, bson.D{
-				{Key: "$set", Value: bson.D{
-					{Key: "status", Value: StatusCancelled},
-					{Key: "cancellationReason", Value: "hold_expired"},
-					{Key: "updatedAt", Value: now},
-				}},
-				{Key: "$unset", Value: bson.D{{Key: "holdExpiresAt", Value: ""}}},
-				{Key: "$push", Value: bson.D{{Key: "history", Value: HistoryEntry{
-					Status:    StatusCancelled,
-					ChangedAt: now,
-					Note:      "hold_expired",
-				}}}},
-			})
-			if err != nil {
-				return err
-			}
-			if _, err := r.locks.DeleteMany(txCtx, bson.D{{Key: "appointmentId", Value: appt.ID}}); err != nil {
-				return err
-			}
-			if res.ModifiedCount > 0 {
-				released++
-			}
-			return nil
-		})
+		ok, err := r.releaseHold(ctx, appt.ID, now)
 		if err != nil {
 			return released, err
 		}
+		if ok {
+			released++
+		}
+	}
+	return released, nil
+}
+
+// releaseHold cancels one expired hold and deletes its locks, reporting whether
+// the appointment was still an expired hold.
+func (r *Repository) releaseHold(ctx context.Context, appointmentID bson.ObjectID, now time.Time) (bool, error) {
+	released := false
+	err := r.runTx(ctx, func(txCtx context.Context) error {
+		res, err := r.appts.UpdateOne(txCtx, bson.D{
+			{Key: "_id", Value: appointmentID},
+			{Key: "status", Value: StatusHeld},
+			{Key: "holdExpiresAt", Value: bson.D{{Key: "$lte", Value: now}}},
+		}, bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "status", Value: StatusCancelled},
+				{Key: "cancellationReason", Value: "hold_expired"},
+				{Key: "updatedAt", Value: now},
+			}},
+			{Key: "$unset", Value: bson.D{{Key: "holdExpiresAt", Value: ""}}},
+			{Key: "$push", Value: bson.D{{Key: "history", Value: HistoryEntry{
+				Status:    StatusCancelled,
+				ChangedAt: now,
+				Note:      "hold_expired",
+			}}}},
+		})
+		if err != nil {
+			return err
+		}
+		released = res.ModifiedCount > 0
+		if !released {
+			return nil
+		}
+		if _, err := r.locks.DeleteMany(txCtx, bson.D{{Key: "appointmentId", Value: appointmentID}}); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return false, err
 	}
 	return released, nil
 }

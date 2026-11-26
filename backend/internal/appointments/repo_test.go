@@ -351,3 +351,52 @@ func TestConcurrentReschedule(t *testing.T) {
 		}
 	}
 }
+
+// bookAt books a 30-minute appointment on fresh resources starting at start.
+func bookAt(ctx context.Context, t *testing.T, repo *Repository, start time.Time, confirm bool) Appointment {
+	t.Helper()
+	appt, err := repo.Book(ctx, BookInput{
+		PractitionerID: bson.NewObjectID(),
+		RoomID:         bson.NewObjectID(),
+		ServiceID:      bson.NewObjectID(),
+		PatientRef:     "patient",
+		StartAt:        start,
+		EndAt:          start.Add(30 * time.Minute),
+		Confirm:        confirm,
+	})
+	if err != nil {
+		t.Fatalf("Book: %v", err)
+	}
+	return appt
+}
+
+func countLocks(ctx context.Context, t *testing.T, repo *Repository, appointmentID bson.ObjectID) int {
+	t.Helper()
+	locks, err := repo.locks.Find(ctx, bson.D{{Key: "appointmentId", Value: appointmentID}})
+	if err != nil {
+		t.Fatalf("find locks: %v", err)
+	}
+	return len(locks)
+}
+
+// A sweep that listed a hold just before it was confirmed must leave it alone.
+func TestReleaseHoldKeepsLocksOfConfirmedAppointment(t *testing.T) {
+	repo, ctx := setupAppointmentsRepo(t)
+	now := futureBase()
+	repo.now = func() time.Time { return now }
+	held := bookAt(ctx, t, repo, now.Add(24*time.Hour), false)
+	if _, err := repo.ConfirmHold(ctx, held.ID, nil, ""); err != nil {
+		t.Fatalf("ConfirmHold: %v", err)
+	}
+
+	released, err := repo.releaseHold(ctx, held.ID, now.Add(time.Hour))
+	if err != nil {
+		t.Fatalf("releaseHold: %v", err)
+	}
+	if released {
+		t.Fatal("released = true, want false")
+	}
+	if got := countLocks(ctx, t, repo, held.ID); got != 12 {
+		t.Fatalf("locks = %d, want 12", got)
+	}
+}
