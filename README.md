@@ -43,6 +43,7 @@ make db-up
 | `make gen` | Regenera el código de Go y TypeScript a partir de `openapi/openapi.yaml` |
 | `make gen-web` | Regenera solo los tipos TypeScript en `web/src/lib/api/schema.d.ts` |
 | `make api` | Corre la API en http://localhost:8080 (necesita `make db-up`) |
+| `make worker` | Corre el worker, que libera cada minuto las reservas temporales vencidas |
 | `make web` | Corre la aplicación Next.js en http://localhost:3000 |
 | `make test-web` | Pruebas unitarias de la web con Vitest |
 | `make lint-web` | ESLint, verificación de tipos (`tsc`) y formato (`prettier`) en `web/` |
