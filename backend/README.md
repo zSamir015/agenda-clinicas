@@ -5,7 +5,7 @@ Todo el código Go: la API, el worker y la herramienta de administración `tenan
 | Carpeta | Contenido |
 |---|---|
 | `cmd/api/` | Punto de entrada de la API HTTP |
-| `cmd/worker/` | Punto de entrada del worker (fase 7) |
+| `cmd/worker/` | Worker: libera cada minuto las reservas temporales vencidas (`make worker`) |
 | `cmd/tenantctl/` | CLI de administración de clínicas (fase 1) |
 | `internal/` | Paquetes del proyecto. Go no permite importarlos desde fuera del módulo |
 

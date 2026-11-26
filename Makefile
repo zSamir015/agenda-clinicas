@@ -27,7 +27,7 @@ test-crypto:
 lint-go:
 	cd backend && golangci-lint run ./...
 
-.PHONY: gen gen-go gen-web api web test-web test-e2e lint-web tenantctl
+.PHONY: gen gen-go gen-web api web test-web test-e2e lint-web tenantctl worker
 
 gen: gen-go gen-web
 
@@ -39,6 +39,9 @@ gen-web:
 
 api:
 	set -a; [ -f .env ] && . ./.env; set +a; cd backend && go run ./cmd/api
+
+worker:
+	set -a; [ -f .env ] && . ./.env; set +a; cd backend && go run ./cmd/worker
 
 web:
 	cd web && npm run dev
