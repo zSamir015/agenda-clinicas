@@ -110,16 +110,22 @@ func setupAppointmentsRepo(t *testing.T) (*Repository, context.Context) {
 	return repo, platform.WithTenant(ctx, clinic)
 }
 
+// futureBase returns 14:00 UTC thirty days from now. Held locks carry a real
+// expiresAt, so a fake clock in the past would let the TTL monitor delete them.
+func futureBase() time.Time {
+	return time.Now().UTC().Truncate(24*time.Hour).AddDate(0, 0, 30).Add(14 * time.Hour)
+}
+
 func TestAppointmentLifecycleAndHoldReclaim(t *testing.T) {
 	repo, ctx := setupAppointmentsRepo(t)
 
-	now := time.Date(2026, time.November, 24, 14, 0, 0, 0, time.UTC)
+	now := futureBase()
 	repo.now = func() time.Time { return now }
 
 	pracID := bson.NewObjectID()
 	roomID := bson.NewObjectID()
 	svcID := bson.NewObjectID()
-	slotStart := time.Date(2026, time.November, 25, 14, 0, 0, 0, time.UTC)
+	slotStart := now.Add(24 * time.Hour)
 	slotEnd := slotStart.Add(30 * time.Minute)
 
 	// 1. Create a held appointment.
