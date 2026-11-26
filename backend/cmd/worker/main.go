@@ -41,14 +41,16 @@ func run() error {
 	defer stop()
 
 	connectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
 	db, err := mongodb.Connect(connectCtx, cfg.MongoURI)
+	cancel()
 	if err != nil {
 		return err
 	}
 	defer func() { _ = db.Close(context.Background()) }()
 
-	clinics, err := platform.NewClinicRepository(connectCtx, db.Mongo().Database("platform"))
+	initCtx, cancelInit := context.WithTimeout(ctx, 10*time.Second)
+	clinics, err := platform.NewClinicRepository(initCtx, db.Mongo().Database("platform"))
+	cancelInit()
 	if err != nil {
 		return fmt.Errorf("init clinic repo: %w", err)
 	}
