@@ -542,3 +542,18 @@ func TestRescheduleBuffer(t *testing.T) {
 		})
 	}
 }
+
+// A slot starting just before the window end needs the cells that follow it.
+func TestOccupiedCellsCoverSlotsStartingBeforeWindowEnd(t *testing.T) {
+	repo, ctx := setupAppointmentsRepo(t)
+	start := futureBase()
+	bookAt(ctx, t, repo, start.Add(time.Hour), true)
+
+	occupied, err := repo.OccupiedCellsInRange(ctx, start, start.Add(time.Hour))
+	if err != nil {
+		t.Fatalf("OccupiedCellsInRange: %v", err)
+	}
+	if len(occupied) != 12 {
+		t.Fatalf("occupied = %d, want 12", len(occupied))
+	}
+}

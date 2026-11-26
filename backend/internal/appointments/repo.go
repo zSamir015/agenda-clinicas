@@ -407,8 +407,10 @@ func (r *Repository) ListInRange(ctx context.Context, from, to time.Time, practi
 	return r.appts.Find(ctx, filter, options.Find().SetSort(bson.D{{Key: "startAt", Value: 1}}))
 }
 
-// OccupiedCellsInRange returns active (non-expired) slot_locks in [from, to)
-// formatted for schedule.ComputeAvailability.
+// OccupiedCellsInRange returns the active (non-expired) slot_locks needed to
+// compute availability for slots starting in [from, to), formatted for
+// schedule.ComputeAvailability. It reads past to by the longest appointment plus
+// buffer, so a slot starting near the end sees the bookings it would overlap.
 func (r *Repository) OccupiedCellsInRange(ctx context.Context, from, to time.Time) ([]schedule.OccupiedCell, error) {
 	if !to.After(from) {
 		return nil, fmt.Errorf("%w: to must be after from", ErrInvalidAppointment)
@@ -417,7 +419,7 @@ func (r *Repository) OccupiedCellsInRange(ctx context.Context, from, to time.Tim
 	filter := bson.D{
 		{Key: "cellStart", Value: bson.D{
 			{Key: "$gte", Value: from.UTC()},
-			{Key: "$lt", Value: to.UTC()},
+			{Key: "$lt", Value: to.UTC().Add((MaxAppointmentMinutes + MaxBufferMinutes) * time.Minute)},
 		}},
 		{Key: "$or", Value: bson.A{
 			bson.D{{Key: "status", Value: StatusConfirmed}},
