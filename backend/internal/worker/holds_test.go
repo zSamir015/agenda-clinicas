@@ -1,10 +1,12 @@
 package worker_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
 	"log/slog"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -82,13 +84,20 @@ func TestSweepReleasesExpiredHoldsInBothTiers(t *testing.T) {
 	}
 	time.Sleep(10 * time.Millisecond)
 
-	sweeper := worker.HoldSweeper{Clinics: clinics, Holds: repo, Log: discard()}
+	var logs bytes.Buffer
+	sweeper := worker.HoldSweeper{Clinics: clinics, Holds: repo, Log: slog.New(slog.NewTextHandler(&logs, nil))}
 	released, err := sweeper.Sweep(ctx)
 	if err != nil {
 		t.Fatalf("Sweep: %v", err)
 	}
 	if released != 2 {
 		t.Fatalf("released = %d, want 2", released)
+	}
+	for _, c := range clinics {
+		want := `msg="released expired holds" clinic=` + c.Slug + " count=1"
+		if !strings.Contains(logs.String(), want) {
+			t.Fatalf("log missing %q:\n%s", want, logs.String())
+		}
 	}
 	for i, c := range clinics {
 		got, err := repo.ByID(platform.WithTenant(ctx, c), held[i].ID)
