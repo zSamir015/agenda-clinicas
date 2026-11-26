@@ -186,18 +186,13 @@ func (r *Repository) Reschedule(ctx context.Context, in RescheduleInput) (Appoin
 	if in.PractitionerID.IsZero() || in.RoomID.IsZero() {
 		return Appointment{}, fmt.Errorf("%w: practitionerId and roomId are required", ErrInvalidAppointment)
 	}
-	cells, err := BuildSlotCells(in.StartAt, in.EndAt, in.BufferMinutes)
-	if err != nil {
-		return Appointment{}, err
-	}
-
 	clinic, ok := platform.TenantFrom(ctx)
 	if !ok || clinic.ID.IsZero() {
 		return Appointment{}, tenantdb.ErrNoTenant
 	}
 
 	var updated Appointment
-	err = r.runTx(ctx, func(txCtx context.Context) error {
+	err := r.runTx(ctx, func(txCtx context.Context) error {
 		appt, err := r.appts.FindOne(txCtx, bson.D{{Key: "_id", Value: in.AppointmentID}})
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return ErrAppointmentNotFound
@@ -212,6 +207,15 @@ func (r *Repository) Reschedule(ctx context.Context, in RescheduleInput) (Appoin
 		now := r.now()
 		if appt.Status == StatusHeld && appt.HoldExpiresAt != nil && !appt.HoldExpiresAt.After(now) {
 			return ErrHoldExpired
+		}
+
+		buffer := appt.BufferMinutes
+		if in.BufferMinutes != nil {
+			buffer = *in.BufferMinutes
+		}
+		cells, err := BuildSlotCells(in.StartAt, in.EndAt, buffer)
+		if err != nil {
+			return err
 		}
 
 		if _, err := r.locks.DeleteMany(txCtx, bson.D{{Key: "appointmentId", Value: appt.ID}}); err != nil {
@@ -236,7 +240,7 @@ func (r *Repository) Reschedule(ctx context.Context, in RescheduleInput) (Appoin
 				{Key: "roomId", Value: in.RoomID},
 				{Key: "startAt", Value: in.StartAt.UTC().Truncate(time.Millisecond)},
 				{Key: "endAt", Value: in.EndAt.UTC().Truncate(time.Millisecond)},
-				{Key: "bufferMinutes", Value: in.BufferMinutes},
+				{Key: "bufferMinutes", Value: buffer},
 				{Key: "updatedAt", Value: now},
 			}},
 			{Key: "$push", Value: bson.D{{Key: "history", Value: entry}}},

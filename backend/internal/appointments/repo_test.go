@@ -474,3 +474,53 @@ func TestTransitionStatusReleasesRemainingCells(t *testing.T) {
 		t.Fatalf("locks = %d, want 6", got)
 	}
 }
+
+func TestRescheduleBuffer(t *testing.T) {
+	zero := 0
+	tests := []struct {
+		name       string
+		buffer     *int
+		wantBuffer int
+		wantLocks  int
+	}{
+		{name: "nil keeps the stored buffer", buffer: nil, wantBuffer: 10, wantLocks: 16},
+		{name: "explicit zero removes it", buffer: &zero, wantBuffer: 0, wantLocks: 12},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			repo, ctx := setupAppointmentsRepo(t)
+			start := futureBase()
+			appt, err := repo.Book(ctx, BookInput{
+				PractitionerID: bson.NewObjectID(),
+				RoomID:         bson.NewObjectID(),
+				ServiceID:      bson.NewObjectID(),
+				PatientRef:     "patient",
+				StartAt:        start,
+				EndAt:          start.Add(30 * time.Minute),
+				BufferMinutes:  10,
+				Confirm:        true,
+			})
+			if err != nil {
+				t.Fatalf("Book: %v", err)
+			}
+
+			moved, err := repo.Reschedule(ctx, RescheduleInput{
+				AppointmentID:  appt.ID,
+				PractitionerID: appt.PractitionerID,
+				RoomID:         appt.RoomID,
+				StartAt:        start.Add(2 * time.Hour),
+				EndAt:          start.Add(2*time.Hour + 30*time.Minute),
+				BufferMinutes:  tc.buffer,
+			})
+			if err != nil {
+				t.Fatalf("Reschedule: %v", err)
+			}
+			if moved.BufferMinutes != tc.wantBuffer {
+				t.Fatalf("buffer = %d, want %d", moved.BufferMinutes, tc.wantBuffer)
+			}
+			if got := countLocks(ctx, t, repo, appt.ID); got != tc.wantLocks {
+				t.Fatalf("locks = %d, want %d", got, tc.wantLocks)
+			}
+		})
+	}
+}

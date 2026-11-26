@@ -135,9 +135,10 @@ type RescheduleInput struct {
 	RoomID         bson.ObjectID
 	StartAt        time.Time
 	EndAt          time.Time
-	BufferMinutes  int
-	ActorID        *bson.ObjectID
-	Note           string
+	// BufferMinutes overrides the stored buffer; nil keeps it.
+	BufferMinutes *int
+	ActorID       *bson.ObjectID
+	Note          string
 }
 
 // BuildSlotCells validates 5-minute alignment and returns every 5-minute cell
