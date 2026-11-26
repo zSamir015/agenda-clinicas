@@ -203,6 +203,7 @@ func TestAppointmentLifecycleAndHoldReclaim(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Book(after cancel): %v", err)
 	}
+	now = slotStart
 	if _, err := repo.TransitionStatus(ctx, rebooked.ID, StatusCompleted, nil, "Atendida"); err != nil {
 		t.Fatalf("TransitionStatus(completed): %v", err)
 	}
@@ -443,5 +444,33 @@ func TestApplyTransitionRejectsCancelledAppointment(t *testing.T) {
 	}
 	if got.Status != StatusCancelled {
 		t.Fatalf("status = %s, want cancelled", got.Status)
+	}
+}
+
+func TestTransitionStatusRejectsFutureAppointment(t *testing.T) {
+	for _, target := range []Status{StatusCompleted, StatusNoShow} {
+		t.Run(string(target), func(t *testing.T) {
+			repo, ctx := setupAppointmentsRepo(t)
+			appt := bookAt(ctx, t, repo, futureBase(), true)
+
+			if _, err := repo.TransitionStatus(ctx, appt.ID, target, nil, ""); !errors.Is(err, ErrInvalidTransition) {
+				t.Fatalf("error = %v, want ErrInvalidTransition", err)
+			}
+		})
+	}
+}
+
+func TestTransitionStatusReleasesRemainingCells(t *testing.T) {
+	repo, ctx := setupAppointmentsRepo(t)
+	start := futureBase()
+	appt := bookAt(ctx, t, repo, start, true)
+	repo.now = func() time.Time { return start.Add(12 * time.Minute) }
+
+	if _, err := repo.TransitionStatus(ctx, appt.ID, StatusCompleted, nil, ""); err != nil {
+		t.Fatalf("TransitionStatus: %v", err)
+	}
+	// Cells 14:00, 14:05 and 14:10 have started; one lock per resource each.
+	if got := countLocks(ctx, t, repo, appt.ID); got != 6 {
+		t.Fatalf("locks = %d, want 6", got)
 	}
 }

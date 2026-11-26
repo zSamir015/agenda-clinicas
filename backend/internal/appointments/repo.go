@@ -336,6 +336,9 @@ func (r *Repository) TransitionStatus(ctx context.Context, appointmentID bson.Ob
 	}
 
 	now := r.now()
+	if now.Before(appt.StartAt) {
+		return Appointment{}, fmt.Errorf("%w: cannot mark %s before the appointment starts", ErrInvalidTransition, target)
+	}
 	entry := HistoryEntry{
 		Status:    target,
 		ChangedAt: now,
@@ -349,25 +352,31 @@ func (r *Repository) TransitionStatus(ctx context.Context, appointmentID bson.Ob
 }
 
 // applyTransition writes the status carried by entry, only if the appointment
-// is still confirmed.
+// is still confirmed, and frees the cells that have not started yet.
 func (r *Repository) applyTransition(ctx context.Context, appointmentID bson.ObjectID, entry HistoryEntry) error {
-	res, err := r.appts.UpdateOne(ctx, bson.D{
-		{Key: "_id", Value: appointmentID},
-		{Key: "status", Value: StatusConfirmed},
-	}, bson.D{
-		{Key: "$set", Value: bson.D{
-			{Key: "status", Value: entry.Status},
-			{Key: "updatedAt", Value: entry.ChangedAt},
-		}},
-		{Key: "$push", Value: bson.D{{Key: "history", Value: entry}}},
-	})
-	if err != nil {
+	return r.runTx(ctx, func(txCtx context.Context) error {
+		res, err := r.appts.UpdateOne(txCtx, bson.D{
+			{Key: "_id", Value: appointmentID},
+			{Key: "status", Value: StatusConfirmed},
+		}, bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "status", Value: entry.Status},
+				{Key: "updatedAt", Value: entry.ChangedAt},
+			}},
+			{Key: "$push", Value: bson.D{{Key: "history", Value: entry}}},
+		})
+		if err != nil {
+			return err
+		}
+		if res.MatchedCount == 0 {
+			return fmt.Errorf("%w: appointment is no longer confirmed", ErrInvalidTransition)
+		}
+		_, err = r.locks.DeleteMany(txCtx, bson.D{
+			{Key: "appointmentId", Value: appointmentID},
+			{Key: "cellStart", Value: bson.D{{Key: "$gt", Value: entry.ChangedAt}}},
+		})
 		return err
-	}
-	if res.MatchedCount == 0 {
-		return fmt.Errorf("%w: appointment is no longer confirmed", ErrInvalidTransition)
-	}
-	return nil
+	})
 }
 
 // ByID returns the appointment identified by id in the context clinic.
