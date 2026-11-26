@@ -342,16 +342,32 @@ func (r *Repository) TransitionStatus(ctx context.Context, appointmentID bson.Ob
 		ActorID:   actorID,
 		Note:      strings.TrimSpace(note),
 	}
-	if _, err := r.appts.UpdateOne(ctx, bson.D{{Key: "_id", Value: appointmentID}}, bson.D{
-		{Key: "$set", Value: bson.D{
-			{Key: "status", Value: target},
-			{Key: "updatedAt", Value: now},
-		}},
-		{Key: "$push", Value: bson.D{{Key: "history", Value: entry}}},
-	}); err != nil {
+	if err := r.applyTransition(ctx, appointmentID, entry); err != nil {
 		return Appointment{}, err
 	}
 	return r.ByID(ctx, appointmentID)
+}
+
+// applyTransition writes the status carried by entry, only if the appointment
+// is still confirmed.
+func (r *Repository) applyTransition(ctx context.Context, appointmentID bson.ObjectID, entry HistoryEntry) error {
+	res, err := r.appts.UpdateOne(ctx, bson.D{
+		{Key: "_id", Value: appointmentID},
+		{Key: "status", Value: StatusConfirmed},
+	}, bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "status", Value: entry.Status},
+			{Key: "updatedAt", Value: entry.ChangedAt},
+		}},
+		{Key: "$push", Value: bson.D{{Key: "history", Value: entry}}},
+	})
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return fmt.Errorf("%w: appointment is no longer confirmed", ErrInvalidTransition)
+	}
+	return nil
 }
 
 // ByID returns the appointment identified by id in the context clinic.

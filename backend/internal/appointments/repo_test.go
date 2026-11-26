@@ -424,3 +424,24 @@ func TestConfirmHoldRequiresEveryLock(t *testing.T) {
 		t.Fatalf("status = %s, want held", got.Status)
 	}
 }
+
+// A transition decided on a stale read must not overwrite a cancellation.
+func TestApplyTransitionRejectsCancelledAppointment(t *testing.T) {
+	repo, ctx := setupAppointmentsRepo(t)
+	appt := bookAt(ctx, t, repo, futureBase(), true)
+	if _, err := repo.Cancel(ctx, appt.ID, nil, ""); err != nil {
+		t.Fatalf("Cancel: %v", err)
+	}
+
+	err := repo.applyTransition(ctx, appt.ID, HistoryEntry{Status: StatusCompleted, ChangedAt: repo.now()})
+	if !errors.Is(err, ErrInvalidTransition) {
+		t.Fatalf("error = %v, want ErrInvalidTransition", err)
+	}
+	got, err := repo.ByID(ctx, appt.ID)
+	if err != nil {
+		t.Fatalf("ByID: %v", err)
+	}
+	if got.Status != StatusCancelled {
+		t.Fatalf("status = %s, want cancelled", got.Status)
+	}
+}
