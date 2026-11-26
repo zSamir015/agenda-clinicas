@@ -11,7 +11,7 @@ import (
 	"github.com/zSamir015/agenda-clinicas/backend/internal/platform"
 )
 
-const defaultClinicTimeout = 30 * time.Second
+const defaultTimeout = 30 * time.Second
 
 // ClinicLister lists the registered clinics.
 type ClinicLister interface {
@@ -28,7 +28,8 @@ type HoldSweeper struct {
 	Clinics ClinicLister
 	Holds   HoldReleaser
 	Log     *slog.Logger
-	// Timeout bounds the work on each clinic; zero means 30 seconds.
+	// Timeout bounds the clinic listing and the work on each clinic; zero means
+	// 30 seconds.
 	Timeout time.Duration
 }
 
@@ -36,7 +37,7 @@ type HoldSweeper struct {
 // it released. A failing clinic does not stop the others; their errors are
 // joined in the result.
 func (s HoldSweeper) Sweep(ctx context.Context) (int, error) {
-	clinics, err := s.Clinics.List(ctx)
+	clinics, err := s.listClinics(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("list clinics: %w", err)
 	}
@@ -61,12 +62,21 @@ func (s HoldSweeper) Sweep(ctx context.Context) (int, error) {
 	return total, errors.Join(errs...)
 }
 
-func (s HoldSweeper) sweepClinic(ctx context.Context, c platform.Clinic) (int, error) {
-	timeout := s.Timeout
-	if timeout <= 0 {
-		timeout = defaultClinicTimeout
+func (s HoldSweeper) listClinics(ctx context.Context) ([]platform.Clinic, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	return s.Clinics.List(ctx)
+}
+
+func (s HoldSweeper) timeout() time.Duration {
+	if s.Timeout <= 0 {
+		return defaultTimeout
 	}
-	ctx, cancel := context.WithTimeout(platform.WithTenant(ctx, c), timeout)
+	return s.Timeout
+}
+
+func (s HoldSweeper) sweepClinic(ctx context.Context, c platform.Clinic) (int, error) {
+	ctx, cancel := context.WithTimeout(platform.WithTenant(ctx, c), s.timeout())
 	defer cancel()
 	return s.Holds.ReleaseExpiredHolds(ctx)
 }

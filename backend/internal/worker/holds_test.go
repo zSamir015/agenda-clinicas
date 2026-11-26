@@ -190,3 +190,29 @@ func TestRunSweepsAtStartAndOnEveryTickUntilCancelled(t *testing.T) {
 		t.Fatalf("Run did not reach three sweeps: %d calls", calls)
 	}
 }
+
+type listFunc func(ctx context.Context) ([]platform.Clinic, error)
+
+func (f listFunc) List(ctx context.Context) ([]platform.Clinic, error) { return f(ctx) }
+
+func TestSweepBoundsTheClinicListing(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	sweeper := worker.HoldSweeper{
+		Clinics: listFunc(func(ctx context.Context) ([]platform.Clinic, error) {
+			<-ctx.Done()
+			return nil, ctx.Err()
+		}),
+		Log:     discard(),
+		Timeout: 20 * time.Millisecond,
+	}
+
+	_, err := sweeper.Sweep(ctx)
+
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("error = %v, want deadline exceeded", err)
+	}
+	if ctx.Err() != nil {
+		t.Fatal("listing blocked until the caller gave up")
+	}
+}
