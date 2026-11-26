@@ -356,12 +356,14 @@ func (r *Repository) TransitionStatus(ctx context.Context, appointmentID bson.Ob
 }
 
 // applyTransition writes the status carried by entry, only if the appointment
-// is still confirmed, and frees the cells that have not started yet.
+// is still confirmed and has started, and frees the cells that have not started
+// yet.
 func (r *Repository) applyTransition(ctx context.Context, appointmentID bson.ObjectID, entry HistoryEntry) error {
 	return r.runTx(ctx, func(txCtx context.Context) error {
 		res, err := r.appts.UpdateOne(txCtx, bson.D{
 			{Key: "_id", Value: appointmentID},
 			{Key: "status", Value: StatusConfirmed},
+			{Key: "startAt", Value: bson.D{{Key: "$lte", Value: entry.ChangedAt}}},
 		}, bson.D{
 			{Key: "$set", Value: bson.D{
 				{Key: "status", Value: entry.Status},
@@ -373,7 +375,7 @@ func (r *Repository) applyTransition(ctx context.Context, appointmentID bson.Obj
 			return err
 		}
 		if res.MatchedCount == 0 {
-			return fmt.Errorf("%w: appointment is no longer confirmed", ErrInvalidTransition)
+			return fmt.Errorf("%w: appointment is no longer confirmed and started", ErrInvalidTransition)
 		}
 		_, err = r.locks.DeleteMany(txCtx, bson.D{
 			{Key: "appointmentId", Value: appointmentID},

@@ -557,3 +557,17 @@ func TestOccupiedCellsCoverSlotsStartingBeforeWindowEnd(t *testing.T) {
 		t.Fatalf("occupied = %d, want 12", len(occupied))
 	}
 }
+
+// A reschedule can move the appointment into the future after the start check.
+func TestApplyTransitionRejectsAppointmentNotStarted(t *testing.T) {
+	repo, ctx := setupAppointmentsRepo(t)
+	appt := bookAt(ctx, t, repo, futureBase(), true)
+
+	err := repo.applyTransition(ctx, appt.ID, HistoryEntry{Status: StatusCompleted, ChangedAt: repo.now()})
+	if !errors.Is(err, ErrInvalidTransition) {
+		t.Fatalf("error = %v, want ErrInvalidTransition", err)
+	}
+	if got := countLocks(ctx, t, repo, appt.ID); got != 12 {
+		t.Fatalf("locks = %d, want 12", got)
+	}
+}
