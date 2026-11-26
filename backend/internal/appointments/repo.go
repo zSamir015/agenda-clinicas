@@ -442,7 +442,8 @@ func (r *Repository) OccupiedCellsInRange(ctx context.Context, from, to time.Tim
 	return out, nil
 }
 
-// ReleaseExpiredHolds cancels expired held appointments and deletes their slot_locks.
+// ReleaseExpiredHolds cancels expired held appointments and deletes their
+// slot_locks. A hold that fails does not stop the others; the errors are joined.
 func (r *Repository) ReleaseExpiredHolds(ctx context.Context) (int, error) {
 	now := r.now()
 	expired, err := r.appts.Find(ctx, bson.D{
@@ -453,16 +454,22 @@ func (r *Repository) ReleaseExpiredHolds(ctx context.Context) (int, error) {
 		return 0, err
 	}
 	released := 0
+	var errs []error
 	for _, appt := range expired {
+		if err := ctx.Err(); err != nil {
+			errs = append(errs, err)
+			break
+		}
 		ok, err := r.releaseHold(ctx, appt.ID, now)
 		if err != nil {
-			return released, err
+			errs = append(errs, fmt.Errorf("release hold %s: %w", appt.ID.Hex(), err))
+			continue
 		}
 		if ok {
 			released++
 		}
 	}
-	return released, nil
+	return released, errors.Join(errs...)
 }
 
 // releaseHold cancels one expired hold and deletes its locks, reporting whether

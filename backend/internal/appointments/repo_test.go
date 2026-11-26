@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -11,6 +12,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/zSamir015/agenda-clinicas/backend/internal/migrate"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/mongodb"
@@ -569,5 +571,38 @@ func TestApplyTransitionRejectsAppointmentNotStarted(t *testing.T) {
 	}
 	if got := countLocks(ctx, t, repo, appt.ID); got != 12 {
 		t.Fatalf("locks = %d, want 12", got)
+	}
+}
+
+func TestReleaseExpiredHoldsContinuesAfterAFailure(t *testing.T) {
+	repo, ctx := setupAppointmentsRepo(t)
+	now := futureBase()
+	repo.now = func() time.Time { return now }
+	broken := bookAt(ctx, t, repo, now.Add(24*time.Hour), false)
+	healthy := bookAt(ctx, t, repo, now.Add(48*time.Hour), false)
+	// An empty patientRef breaks the collection validator, so every later update
+	// of this document fails.
+	if _, err := repo.client.Database("operations").Collection("appointments").UpdateByID(ctx, broken.ID,
+		bson.D{{Key: "$set", Value: bson.D{{Key: "patientRef", Value: ""}}}},
+		options.UpdateOne().SetBypassDocumentValidation(true),
+	); err != nil {
+		t.Fatalf("break appointment: %v", err)
+	}
+	now = now.Add(time.Hour)
+
+	released, err := repo.ReleaseExpiredHolds(ctx)
+
+	if err == nil || !strings.Contains(err.Error(), broken.ID.Hex()) {
+		t.Fatalf("error = %v, want one naming %s", err, broken.ID.Hex())
+	}
+	if released != 1 {
+		t.Fatalf("released = %d, want 1", released)
+	}
+	got, err := repo.ByID(ctx, healthy.ID)
+	if err != nil {
+		t.Fatalf("ByID: %v", err)
+	}
+	if got.Status != StatusCancelled {
+		t.Fatalf("status = %s, want cancelled", got.Status)
 	}
 }
