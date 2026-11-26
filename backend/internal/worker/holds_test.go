@@ -165,7 +165,7 @@ func TestSweepContinuesAfterAClinicFailsOrHangs(t *testing.T) {
 	}
 }
 
-func TestRunSweepsAtStartAndOnEveryTickUntilCancelled(t *testing.T) {
+func TestRunSweepsOnEveryTickUntilCancelled(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	var mu sync.Mutex
@@ -188,6 +188,26 @@ func TestRunSweepsAtStartAndOnEveryTickUntilCancelled(t *testing.T) {
 
 	if !errors.Is(ctx.Err(), context.Canceled) {
 		t.Fatalf("Run did not reach three sweeps: %d calls", calls)
+	}
+}
+
+func TestRunSweepsAtStart(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	sweeper := worker.HoldSweeper{
+		Clinics: clinicList{clinic("activa", platform.TierStandard, platform.StatusActive)},
+		Holds: releaseFunc(func(context.Context) (int, error) {
+			cancel()
+			return 0, nil
+		}),
+		Log: discard(),
+	}
+
+	// The interval is far longer than the test, so only the first sweep can run.
+	sweeper.Run(ctx, time.Hour)
+
+	if !errors.Is(ctx.Err(), context.Canceled) {
+		t.Fatal("Run waited for the first tick before sweeping")
 	}
 }
 
