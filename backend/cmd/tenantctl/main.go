@@ -1,4 +1,4 @@
-// Package main implements the tenantctl CLI for creating and listing clinics.
+// Package main implements the tenantctl CLI for creating, listing, and migrating clinics.
 package main
 
 import (
@@ -27,7 +27,7 @@ func main() {
 func run(ctx context.Context, args []string, getenv func(string) string, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
 		printUsage(stderr)
-		return errors.New("subcommand required (create, list)")
+		return errors.New("subcommand required (create, list, migrate)")
 	}
 
 	mongoURI := getenv("MONGO_URI")
@@ -40,6 +40,8 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 		return runCreate(ctx, args[1:], mongoURI, getenv, stdout, stderr)
 	case "list":
 		return runList(ctx, args[1:], mongoURI, stdout, stderr)
+	case "migrate":
+		return runMigrate(ctx, args[1:], mongoURI, stdout, stderr)
 	case "-h", "--help", "help":
 		printUsage(stdout)
 		return nil
@@ -50,9 +52,10 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 }
 
 func printUsage(w io.Writer) {
-	_, _ = fmt.Fprintln(w, "Usage: tenantctl <create|list> [flags]")
+	_, _ = fmt.Fprintln(w, "Usage: tenantctl <create|list|migrate> [flags]")
 	_, _ = fmt.Fprintln(w, "  create  Create a clinic, ensure its data key, and run migrations")
 	_, _ = fmt.Fprintln(w, "  list    List registered clinics")
+	_, _ = fmt.Fprintln(w, "  migrate Apply pending operations migrations to every clinic")
 }
 
 func connectMongo(ctx context.Context, uri string) (*mongodb.Client, error) {

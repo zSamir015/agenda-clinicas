@@ -46,7 +46,7 @@ make db-up
 | `make web` | Corre la aplicación Next.js en http://localhost:3000 |
 | `make test-web` | Pruebas unitarias de la web con Vitest |
 | `make lint-web` | ESLint, verificación de tipos (`tsc`) y formato (`prettier`) en `web/` |
-| `make tenantctl ARGS="..."` | Ejecuta la CLI de administración de clínicas (`create`, `list`) |
+| `make tenantctl ARGS="..."` | Ejecuta la CLI de administración de clínicas (`create`, `list`, `migrate`) |
 
 ### Uso de `tenantctl`
 
@@ -58,6 +58,9 @@ make tenantctl ARGS="create --slug clinica-demo --name 'Clinica Demo' --tier sta
 
 # Listar clínicas registradas
 make tenantctl ARGS="list"
+
+# Aplicar migraciones operativas pendientes a todas las clínicas (tras actualizar)
+make tenantctl ARGS="migrate"
 ```
 
 ## Datos

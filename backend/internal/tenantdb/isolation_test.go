@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	_ "github.com/zSamir015/agenda-clinicas/backend/internal/appointments"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/mongodb"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/mongodb/mongotest"
 	"github.com/zSamir015/agenda-clinicas/backend/internal/platform"

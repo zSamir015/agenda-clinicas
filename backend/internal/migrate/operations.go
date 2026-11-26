@@ -180,6 +180,90 @@ func OperationsMigrations() []Migration {
 				},
 			},
 		},
+		{
+			version: 6,
+			name:    "appointments_schema_and_indexes",
+			coll:    "appointments",
+			schema: bson.D{
+				{Key: "bsonType", Value: "object"},
+				{Key: "required", Value: bson.A{"clinicId", "practitionerId", "roomId", "serviceId", "patientRef", "startAt", "endAt", "bufferMinutes", "status", "history", "createdAt", "updatedAt"}},
+				{Key: "properties", Value: bson.D{
+					{Key: "clinicId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+					{Key: "practitionerId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+					{Key: "roomId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+					{Key: "serviceId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+					{Key: "patientRef", Value: bson.D{{Key: "bsonType", Value: "string"}, {Key: "minLength", Value: 1}}},
+					{Key: "startAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+					{Key: "endAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+					{Key: "bufferMinutes", Value: intRangeSchema(0, 120)},
+					{Key: "status", Value: bson.D{{Key: "bsonType", Value: "string"}, {Key: "enum", Value: bson.A{"held", "confirmed", "completed", "cancelled", "no_show"}}}},
+					{Key: "holdExpiresAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+					{Key: "cancellationReason", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+					{Key: "history", Value: bson.D{
+						{Key: "bsonType", Value: "array"},
+						{Key: "items", Value: bson.D{
+							{Key: "bsonType", Value: "object"},
+							{Key: "required", Value: bson.A{"status", "changedAt"}},
+							{Key: "properties", Value: bson.D{
+								{Key: "status", Value: bson.D{{Key: "bsonType", Value: "string"}, {Key: "enum", Value: bson.A{"held", "confirmed", "completed", "cancelled", "no_show"}}}},
+								{Key: "changedAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+								{Key: "actorId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+								{Key: "note", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+							}},
+						}},
+					}},
+					{Key: "createdAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+					{Key: "updatedAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+				}},
+			},
+			indexes: []mongo.IndexModel{
+				{
+					Keys:    bson.D{{Key: "clinicId", Value: 1}, {Key: "startAt", Value: 1}, {Key: "endAt", Value: 1}},
+					Options: options.Index().SetName("clinic_window_idx"),
+				},
+				{
+					Keys:    bson.D{{Key: "clinicId", Value: 1}, {Key: "practitionerId", Value: 1}, {Key: "startAt", Value: 1}},
+					Options: options.Index().SetName("clinic_practitioner_start_idx"),
+				},
+				{
+					Keys:    bson.D{{Key: "clinicId", Value: 1}, {Key: "status", Value: 1}, {Key: "holdExpiresAt", Value: 1}},
+					Options: options.Index().SetName("clinic_hold_expiry_idx"),
+				},
+			},
+		},
+		{
+			version: 7,
+			name:    "slot_locks_schema_and_indexes",
+			coll:    "slot_locks",
+			schema: bson.D{
+				{Key: "bsonType", Value: "object"},
+				{Key: "required", Value: bson.A{"clinicId", "resourceId", "resourceType", "cellStart", "appointmentId", "status", "createdAt"}},
+				{Key: "properties", Value: bson.D{
+					{Key: "clinicId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+					{Key: "resourceId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+					{Key: "resourceType", Value: bson.D{{Key: "bsonType", Value: "string"}, {Key: "enum", Value: bson.A{"practitioner", "room"}}}},
+					{Key: "cellStart", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+					{Key: "appointmentId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+					{Key: "status", Value: bson.D{{Key: "bsonType", Value: "string"}, {Key: "enum", Value: bson.A{"held", "confirmed"}}}},
+					{Key: "expiresAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+					{Key: "createdAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+				}},
+			},
+			indexes: []mongo.IndexModel{
+				{
+					Keys:    bson.D{{Key: "clinicId", Value: 1}, {Key: "resourceId", Value: 1}, {Key: "cellStart", Value: 1}},
+					Options: options.Index().SetUnique(true).SetName("clinic_resource_cell_unique"),
+				},
+				{
+					Keys:    bson.D{{Key: "clinicId", Value: 1}, {Key: "appointmentId", Value: 1}},
+					Options: options.Index().SetName("clinic_appointment_idx"),
+				},
+				{
+					Keys:    bson.D{{Key: "expiresAt", Value: 1}},
+					Options: options.Index().SetExpireAfterSeconds(0).SetName("slot_locks_ttl_idx"),
+				},
+			},
+		},
 	}
 
 	out := make([]Migration, 0, len(specs))
